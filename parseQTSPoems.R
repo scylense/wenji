@@ -33,7 +33,7 @@
 # Date:     May. 2016
 # Author:   Boris Steipe and Yi Chen
 #
-# V 0.1     build author dataframe
+# V 0.1     write functions to extract and analyse poems
 #
 # ==============================================================================
 
@@ -257,7 +257,7 @@ poemDF <- data.frame(poemID   = numeric(nPoems),
                      bodyS    = character(nPoems),
                      stringsAsFactors = FALSE)
 
-for (i in 20:nFiles) {
+for (i in 1:nFiles) {
   print(sprintf("Volume: %d", i))
   po <- extractPoems(sprintf("%s/%s", poemDir, poemDocs[i]))
   for (j in 1:length(po)) {
@@ -284,23 +284,15 @@ for (i in 20:nFiles) {
 # save(...)
 
 
-fileName <- "../data/qts/qts_0001.htm"
-p <- extractPoems(fileName)
 
-i <- 1
 
+# development ...
 
 utf8ToInt("（")
 u_char_inspect(utf8ToInt("帝京篇十首"))
 u_char_inspect(utf8ToInt("（"))
 u_char_inspect(utf8ToInt("-"))
 
-# development ...
-
-
-
-#    
-#    
 #    
 # ==== TESTS ===================================================================
 
