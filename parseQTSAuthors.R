@@ -33,9 +33,15 @@
 #    qzz_1957.htm   (removed a spurious blank)
 #    qzz_1960.htm   (removed a spurious blank)
 #    
-# An unknown author "无名" with bio "无知。" is added to the dataframe.
+# An unknown author "未知" with bio "未知。" was added to the dataframe with
+# ID 1967.
 # 
-# ToDo:   Fix duplicate name in 1478 / 1651   
+# ID 1478 / 1651 is a name duplicate. However, there is no reference to author
+# 1651, and only one to 1478. Thus the 1651 author was "inactivated" by adding
+# "未知" to the name.
+# 
+# During analysis of the Shitan files, an additional 663 authors were added
+# to the DF - however these have unknown biographies.  
 #
 # V 1.0
 # Date:     May 2016
