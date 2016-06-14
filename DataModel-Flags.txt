@@ -1,0 +1,20 @@
+i<- 1
+notesDF$name[i] <- "TITLETRUNC" 
+notesDF$definition[i] <- "Title truncated, contains ellipsis." 
+
+i<- 2
+notesDF$name[i] <- "UNKCHAR" 
+notesDF$definition[i] <- "Unknown or untranscribable character." 
+
+i<- 3
+notesDF$name[i] <- "MISSCHAR" 
+notesDF$definition[i] <- "Character missing in QTS source." 
+
+i<- 4
+# this flag is used for poems with "X首" notes in the title, as well as
+# poems that have "" as a stanza annotation
+notesDF$notesID[i] <- i 
+notesDF$name[i] <- "TODOMULTISECT" 
+notesDF$definition[i] <- "Poem has multiple sections or stanzas that need to be annotated." 
+
+
