@@ -310,6 +310,8 @@ validateCJK <- function(s) {
 # ==== PROCESS =================================================================
 
 load("../data/authorDF.RData")
+load("../data/poemDF.RData")
+
 
 poemDir <- "../data/qts"
 poemDocs <- list.files(poemDir, pattern="qts_.+")
@@ -368,7 +370,9 @@ for (i in 1:nFiles) {
   # if (readline(prompt = "next volume> ") == "x") { break() }
 }
 
-# save(...)
+
+poemDF <- poemDF[1:42867,]
+save(poemDF, file="../data/poemDF.RData")
 
 
 
