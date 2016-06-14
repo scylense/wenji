@@ -62,7 +62,7 @@ if (!require(Unicode)) {
 filenames <- list.files("../data/Atemwende", full.names = TRUE)
 
 # add the contents one by one to the vector AW
-AW <- ""
+AW <- character()
 for( i in 1:length(filenames)) {
   AW <- c(AW, readLines(filenames[i]))
 }
