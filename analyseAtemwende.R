@@ -9,12 +9,13 @@
 #                
 ## 
 #
-# V 0.2
+# V 0.3
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      ...
 #           
+# V 0.3     proces Wikipedia reference corpus
 # V 0.2     merge hyphenated words
 # V 0.1     first code
 #
@@ -122,11 +123,79 @@ head(AWfreq, 100)
 tail(AWfreq, 100)
 
 # plot log rank vs. log frequency (Zipf plot)
-plot(log(1:length(AWfreq)), log(AWfreq))
+plot(log(1:length(AWfreq)), log(as.numeric(AWfreq)))
 
 # look at all words that appear exactly twice
 AWfreq[AWfreq == 2]
 
+# ==== Constructing a reference dataset:
+# Download and unzip the sample Wikipedia article corpus from IDS, place it in
+# the data folder. Then use a texteditor to briefly inspect it. You will notice
+# that the sentences (which we are interested in) are marked-up with <s> ...
+# </s> tags and that there is a lot of extra junk.
+# 
+# Let's read in the corpus while splitting it into sentences, then get rid of
+# the junk.
+# 
+# First we open a connection to a file, while specifying the correct encoding
+# ...
+FH <- file("../data/wpd13_sample.i5.xml", encoding="iso-8859-1")
+
+# ... then we use readLines() to read the whole thing and paste it into a single
+# huge string.
+txt <- paste(readLines(FH), collapse = " ")
+
+# ... and we close the connection.
+close(FH)
+
+# Then we strsplit on sentence closing tags ...
+chunks <- unlist(strsplit(txt, "</s>"))
+
+# Each chunk now contains a <s> tag, followed by the contents of the sentence. 
+# We use strsplit to split the chunk into two parts on the <s> element, then
+# overwrite the chunk with the second element of the strsplit result.
+
+for (i in 1:length(chunks)) {
+  chunks[i] <- strsplit(chunks[i], "<s>")[[1]][2]
+}
+
+# Many chunks contain reference information that we should remove. It is
+# demarcated like : &lt;ref ... /ref&gt; We can get rid of all these references
+# AND the html markup tags AND the html special characters AND  and all other
+# non-word characters AND numbers AND leading and trailing blanks with regular
+# expressions
+
+for (i in 1:length(chunks)) {
+  chunks[i] <- gsub("&lt;ref.*?/ref&gt;", "", chunks[i])  # references
+  chunks[i] <- gsub("<.+?>", "", chunks[i])  # tags
+  chunks[i] <- gsub("&.+?;", "", chunks[i])  # HTML character codes
+  chunks[i] <- gsub("\\W", " ",  chunks[i])  # replace \\W with " "
+  chunks[i] <- gsub("[0-9]", "", chunks[i])  # numbers
+  chunks[i] <- gsub("^\\s+", "", chunks[i])  # leading whitespace
+  chunks[i] <- gsub("\\s+$", "", chunks[i])  # trailing whitespace
+}
+
+# To remove further anomalies, we drop all empty elements, and retain only 
+# elements that contain more than one word (often these are Wikipedia section
+# headings).
+
+chunks <- chunks[! is.na(chunks)]
+chunks <- chunks[grep("\\w\\s+\\w", chunks)]  # character-space-character: 
+                                              # defines "more than one word"
+
+# Finally, we strsplit on non-word characters and put the results into a
+# word-vector and count numbers and frequencies.
+
+chunks <- tolower(chunks)
+WPwords <- unlist(strsplit(chunks, "\\W+"))
+WPwords <- WPwords[WPwords != ""]
+length(WPwords)
+WPfreq <- sort(table(WPwords), decreasing = TRUE)
+length(WPfreq)
+
+plot(log(1:length(WPfreq)), log(as.numeric(WPfreq)), col = "skyblue")
+# compare Celan
+points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
 
 #    
 # ==== TESTS ===================================================================
