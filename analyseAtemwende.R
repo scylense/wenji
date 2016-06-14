@@ -9,12 +9,13 @@
 #                
 ## 
 #
-# V 0.1
+# V 0.2
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      ...
 #           
+# V 0.2     merge hyphenated words
 # V 0.1     first code
 #
 # ==============================================================================
@@ -63,29 +64,56 @@ filenames <- list.files("../data/Atemwende", full.names = TRUE)
 
 # add the contents one by one to the vector AW
 AW <- character()
-for( i in 1:length(filenames)) {
+for (i in 1:length(filenames)) {
   AW <- c(AW, readLines(filenames[i]))
 }
 
 # drop all empty lines
 AW <- AW[AW != ""]
 
+# Merge hyphenated words: we define a hyphenated word as one where
+# a hyphen appears as the last character, directly attached to a letter
+# and the first character of the next line is lowercase. When we find such
+# a situation, we merge the two lines and delete the hyphen. We also remove the
+# second line.
+
+endHyphens <- grep("\\w-$", AW)
+for (i in 1:length(endHyphens)) {
+  iH <- endHyphens[i]
+  if (length(grep("^[a-z]", AW[iH + 1])) > 0) {
+
+#    print(paste(AW[iH], AW[iH + 1]))
+
+#    pre <- substr(AW[iH], 1, nchar(AW[iH]) - 1)
+#    post <- AW[iH + 1]
+#    print(paste(pre, post, sep = "|"))
+
+    AW[iH] <- paste(substr(AW[iH], 1, nchar(AW[iH]) - 1),
+                    AW[iH + 1],
+                    sep = "")
+    AW[iH + 1] <- ""
+  }
+}
+
+
 # make everything lower-case
 AW <- tolower(AW)
 
 # Strsplit this into words
 AWwords <- unlist(strsplit(AW, "\\W+"))
+
+# Remove all empty words
 AWwords <- AWwords[AWwords != ""]
 
 
 # how many words are there?
-length(AWwords)  # 3654
+length(AWwords)  # 3556
 
 # tabulate word frequencies and sort
 AWfreq <- sort(table(AWwords), decreasing = TRUE)
 
 # how many unique words?
-length(AWfreq)
+length(AWfreq)  # 1765
 
 # look at the top 100
 head(AWfreq, 100)
@@ -98,7 +126,6 @@ plot(log(1:length(AWfreq)), log(AWfreq))
 
 # look at all words that appear exactly twice
 AWfreq[AWfreq == 2]
-
 
 
 #    
