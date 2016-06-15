@@ -276,11 +276,12 @@ for (i in 1:N) {
 WPrelFreq <- WPfreq[WPmatches] / length(WPwords)
 
 for (i in 1:N) {
-  cat(sprintf("\t%12s  %6.4f %6.4f %8.4f\n",
+  cat(sprintf("\t%3d\t%12s  %6.4f %6.4f %8.4f\n",
+              i,
               names(AWfreq)[i],
               AWrelFreq[i],
               WPrelFreq[i],
-              log(AWrelFreq[i] / WPrelFreq[i])
+              log10(AWrelFreq[i] / WPrelFreq[i])
               ))
 }
 
