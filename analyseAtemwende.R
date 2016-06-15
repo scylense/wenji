@@ -199,7 +199,7 @@ plot(log(1:length(WPfreq)), log(as.numeric(WPfreq)), col = "skyblue")
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
 
 
-# ==== Frenquency analysis with korpora of matched size
+# ==== Frenquency analysis with corpora of matched size
 # 
 
 # A: make a random sample from the WP corpus
@@ -212,7 +212,13 @@ RSwords <- sample(WPwords, corpusSize)
 RSfreq <- sort(table(RSwords), decreasing = TRUE)
 
 # plot
-plot(log(1:length(RSfreq)), log(as.numeric(RSfreq)), col = "skyblue")
+plot(log(1:length(RSfreq)), 
+     log(as.numeric(RSfreq)),
+     xlab = "log(Rank)",
+     ylab = "log(Freq)",
+     xlim = c(0, 8),
+     ylim = c(0, 5.2),
+     col = "seagreen")
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
 
 # repeat this many times and do a density plot of the sampled numbers
@@ -228,6 +234,8 @@ for (i in 1:N){
   RLogRanks <- c(RLogRanks, log(1:corpusSize))
   RLogFreq  <- c(RLogFreq,  log(as.numeric(RSfreq)))
 }
+
+# plot this as a density plot
 
 
 #    
