@@ -9,13 +9,14 @@
 #                
 ## 
 #
-# V 0.5
+# V 0.5.1
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      ...
 #           
-# V 0.4     add enrichment analysis
+# V 0.5.1   print enrichment analysis into nice table
+# V 0.5     add enrichment analysis
 # V 0.4     add frequency analysis from samples with equal numbers of words
 # V 0.3     proces Wikipedia reference corpus
 # V 0.2     merge hyphenated words
@@ -302,25 +303,53 @@ for (i in 1:N) {
 
 
 # print the tabulated results
-printThis <- function() {
+printEnrichmentTable <- function(N, X, Y) {
+  # N - number of words
+  # X, Y - words list of two corpora
+  N <- 100
+  Xfreq <- sort(table(X), decreasing = TRUE)
+  Yfreq <- sort(table(Y), decreasing = TRUE)
+  XrelFreq <- Xfreq[1:N] / length(X)
+  
+  # compile their matching positions in the WP frequency table
+  # and compute the relative frequencies of these words in the WP corpus
+  Ymatches <- numeric()
+  YrelFreq <- numeric()
+  for (i in 1:N) {
+    M <- which(names(Yfreq) == names(Xfreq)[i])
+    if (length(M) == 1) {
+      Ymatches[i] <- M
+      YrelFreq[i] <- Yfreq[Ymatches[i]] / length(Y)
+    } else {
+      Ymatches[i] <- 0
+      YrelFreq[i] <- 0
+    }
+  }
+
   cat("\n\n")
   cat(" rank |   rank |              |        |        |          \n")
-  cat("   AW |     WP |         word |    fAW |    fWP | log-ratio\n")
+  cat("    X |      Y |         word |     fX |    fY  | log-ratio\n")
   cat("------|--------|--------------|--------|--------|----------\n")
-  for (i in 1:N) {
-    x <- nchar(names(AWfreq)[i])
+  logR <- log10(XrelFreq / YrelFreq)
+  for (i in order(abs(logR), decreasing = TRUE)) {
+    x <- nchar(names(Xfreq)[i])
     cat(sprintf("  %3d | %6d | %s%s | %5.4f | %5.4f | %7.4f\n",
                 i,
-                WPmatches[i],
+                Ymatches[i],
                 sprintf("%*s", 12 - x, " "),
-                names(AWfreq)[i],
-                AWrelFreq[i],
-                WPrelFreq[i],
-                log10(AWrelFreq[i] / WPrelFreq[i])
+                names(Xfreq)[i],
+                XrelFreq[i],
+                YrelFreq[i],
+                logR[i]
     ))
   }
 }
-printThis()
+
+printEnrichmentTable(100, AWwords, WPwords)
+
+
+printEnrichmentTable(100, WPwords, AWwords)
+
 
 
 #    
