@@ -9,12 +9,13 @@
 #                
 ## 
 #
-# V 0.3
+# V 0.4
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      ...
 #           
+# V 0.4     do frequency analysis from samples with equal numbers of words
 # V 0.3     proces Wikipedia reference corpus
 # V 0.2     merge hyphenated words
 # V 0.1     first code
@@ -81,7 +82,7 @@ AW <- AW[AW != ""]
 endHyphens <- grep("\\w-$", AW)
 for (i in 1:length(endHyphens)) {
   iH <- endHyphens[i]
-  if (length(grep("^[a-z]", AW[iH + 1])) > 0) {
+  if (length(grep("^[a-zäöü]", AW[iH + 1])) > 0) {
 
 #    print(paste(AW[iH], AW[iH + 1]))
 
@@ -196,6 +197,25 @@ length(WPfreq)
 plot(log(1:length(WPfreq)), log(as.numeric(WPfreq)), col = "skyblue")
 # compare Celan
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
+
+
+# ==== Frenquency analysis with korpora of matched size
+# 
+
+# A: make a random sample from the WP corpus
+# 
+
+corpusSize <- length(AWwords)
+RSwords <- sample(WPwords, corpusSize)
+
+# analyze
+RSfreq <- sort(table(RSwords), decreasing = TRUE)
+
+# plot
+plot(log(1:length(RSfreq)), log(as.numeric(RSfreq)), col = "skyblue")
+points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
+
+
 
 #    
 # ==== TESTS ===================================================================
