@@ -215,7 +215,7 @@ RSfreq <- sort(table(RSwords), decreasing = TRUE)
 plot(log(1:length(RSfreq)), 
      log(as.numeric(RSfreq)),
      xlab = "log(Rank)",
-     ylab = "log(Freq)",
+     ylab = "log(Frequency)",
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col = "seagreen")
@@ -226,16 +226,31 @@ points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
 
 N <- 20
 RLogRanks <- numeric()
-RLogFreqs <- numeric()
+RLogFreq  <- numeric()
 
 for (i in 1:N){
   RSwords <- sample(WPwords, corpusSize)
   RSfreq  <- sort(table(RSwords), decreasing = TRUE)
-  RLogRanks <- c(RLogRanks, log(1:corpusSize))
+  RLogRanks <- c(RLogRanks, log(1:length(RSfreq)))
   RLogFreq  <- c(RLogFreq,  log(as.numeric(RSfreq)))
 }
 
 # plot this as a density plot
+
+plot(RLogRanks, 
+     RLogFreq,
+     xlab = "log(Rank)",
+     ylab = "log(Frequency)",
+     xlim = c(0, 8),
+     ylim = c(0, 5.2),
+     col=densCols(RLogRanks,RLogFreq),
+     pch=19,
+     cex=1.5)
+points(log(1:length(AWfreq)),
+       log(as.numeric(AWfreq)),
+       pch = 19,
+       col = "firebrick",
+       cex = 0.5)
 
 
 #    
