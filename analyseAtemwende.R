@@ -9,13 +9,14 @@
 #                
 ## 
 #
-# V 0.4
+# V 0.5
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      ...
 #           
-# V 0.4     do frequency analysis from samples with equal numbers of words
+# V 0.4     add enrichment analysis
+# V 0.4     add frequency analysis from samples with equal numbers of words
 # V 0.3     proces Wikipedia reference corpus
 # V 0.2     merge hyphenated words
 # V 0.1     first code
@@ -117,6 +118,13 @@ AWfreq <- sort(table(AWwords), decreasing = TRUE)
 # how many unique words?
 length(AWfreq)  # 1765
 
+
+# calculate TTR (Type Token Ratio)
+cat(sprintf("\n\n\n === TTR for Atemwende is %7.5f ===\n\n\n\n", 
+            length(AWfreq) / length(AWwords)))
+
+
+
 # look at the top 100
 head(AWfreq, 100)
 
@@ -152,7 +160,16 @@ close(FH)
 # Then we strsplit on sentence closing tags ...
 chunks <- unlist(strsplit(txt, "</s>"))
 
-# Each chunk now contains a <s> tag, followed by the contents of the sentence. 
+# ... remove txt to free the memory
+rm(txt) 
+
+# Each chunk now contains a <s> tag, followed by the contents of the sentence.
+# ... Except for the last chunk. We drop the last chunk.
+
+chunks <- chunks[-length(chunks)]
+
+# 
+#  
 # We use strsplit to split the chunk into two parts on the <s> element, then
 # overwrite the chunk with the second element of the strsplit result.
 
@@ -177,8 +194,8 @@ for (i in 1:length(chunks)) {
 }
 
 # To remove further anomalies, we drop all empty elements, and retain only 
-# elements that contain more than one word (often these are Wikipedia section
-# headings).
+# elements that contain more than one word (the single words are usually
+# Wikipedia section headings).
 
 chunks <- chunks[! is.na(chunks)]
 chunks <- chunks[grep("\\w\\s+\\w", chunks)]  # character-space-character: 
@@ -194,6 +211,11 @@ length(WPwords)
 WPfreq <- sort(table(WPwords), decreasing = TRUE)
 length(WPfreq)
 
+# Calculate the TTR for the WP corpus
+cat(sprintf("\n\n\n === TTR for WP articles is %7.5f ===\n\n\n\n", 
+            length(WPfreq) / length(WPwords)))
+
+# Show a Zipf plot
 plot(log(1:length(WPfreq)), log(as.numeric(WPfreq)), col = "skyblue")
 # compare Celan
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
@@ -236,7 +258,6 @@ for (i in 1:N){
 }
 
 # plot this as a density plot
-
 plot(RLogRanks, 
      RLogFreq,
      xlab = "log(Rank)",
@@ -256,16 +277,22 @@ points(log(1:length(AWfreq)),
 # ==== Relative frequencies
 # 
 
+# extract the first N words from AW corpus
 N <- 100
 AWrelFreq <- AWfreq[1:N] / length(AWwords)
 
+# compile their matching positions in the WP frequency table
+# and compute the relative frequencies of these words in the WP corpus
 WPmatches <- numeric()
+WPrelFreq <- numeric()
 for (i in 1:N) {
   M <- which(names(WPfreq) == names(AWfreq)[i])
   if (length(M) == 1) {
     WPmatches[i] <- M
+    WPrelFreq[i] <- WPfreq[WPmatches[i]] / length(WPwords)
   } else {
     WPmatches[i] <- 0
+    WPrelFreq[i] <- 0
   }
 }
 
@@ -273,17 +300,27 @@ for (i in 1:N) {
 # AWfreq[7]
 # WPfreq[WPmatches[7]]
 
-WPrelFreq <- WPfreq[WPmatches] / length(WPwords)
 
-for (i in 1:N) {
-  cat(sprintf("\t%3d\t%12s  %6.4f %6.4f %8.4f\n",
-              i,
-              names(AWfreq)[i],
-              AWrelFreq[i],
-              WPrelFreq[i],
-              log10(AWrelFreq[i] / WPrelFreq[i])
-              ))
+# print the tabulated results
+printThis <- function() {
+  cat("\n\n")
+  cat(" rank |   rank |              |        |        |          \n")
+  cat("   AW |     WP |         word |    fAW |    fWP | log-ratio\n")
+  cat("------|--------|--------------|--------|--------|----------\n")
+  for (i in 1:N) {
+    x <- nchar(names(AWfreq)[i])
+    cat(sprintf("  %3d | %6d | %s%s | %5.4f | %5.4f | %7.4f\n",
+                i,
+                WPmatches[i],
+                sprintf("%*s", 12 - x, " "),
+                names(AWfreq)[i],
+                AWrelFreq[i],
+                WPrelFreq[i],
+                log10(AWrelFreq[i] / WPrelFreq[i])
+    ))
+  }
 }
+printThis()
 
 
 #    
