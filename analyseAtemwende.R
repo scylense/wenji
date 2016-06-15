@@ -253,6 +253,38 @@ points(log(1:length(AWfreq)),
        cex = 0.5)
 
 
+# ==== Relative frequencies
+# 
+
+N <- 100
+AWrelFreq <- AWfreq[1:N] / length(AWwords)
+
+WPmatches <- numeric()
+for (i in 1:N) {
+  M <- which(names(WPfreq) == names(AWfreq)[i])
+  if (length(M) == 1) {
+    WPmatches[i] <- M
+  } else {
+    WPmatches[i] <- 0
+  }
+}
+
+# check this:
+# AWfreq[7]
+# WPfreq[WPmatches[7]]
+
+WPrelFreq <- WPfreq[WPmatches] / length(WPwords)
+
+for (i in 1:N) {
+  cat(sprintf("\t%12s  %6.4f %6.4f %8.4f\n",
+              names(AWfreq)[i],
+              AWrelFreq[i],
+              WPrelFreq[i],
+              log(AWrelFreq[i] / WPrelFreq[i])
+              ))
+}
+
+
 #    
 # ==== TESTS ===================================================================
 
