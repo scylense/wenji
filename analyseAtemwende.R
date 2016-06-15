@@ -189,7 +189,7 @@ chunks <- chunks[grep("\\w\\s+\\w", chunks)]  # character-space-character:
 
 chunks <- tolower(chunks)
 WPwords <- unlist(strsplit(chunks, "\\W+"))
-WPwords <- WPwords[WPwords != ""]
+WPwords <- WPwords[nchar(WPwords) > 1]  # remove blanks and single characters
 length(WPwords)
 WPfreq <- sort(table(WPwords), decreasing = TRUE)
 length(WPfreq)
@@ -215,6 +215,19 @@ RSfreq <- sort(table(RSwords), decreasing = TRUE)
 plot(log(1:length(RSfreq)), log(as.numeric(RSfreq)), col = "skyblue")
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
 
+# repeat this many times and do a density plot of the sampled numbers
+# 
+
+N <- 20
+RLogRanks <- numeric()
+RLogFreqs <- numeric()
+
+for (i in 1:N){
+  RSwords <- sample(WPwords, corpusSize)
+  RSfreq  <- sort(table(RSwords), decreasing = TRUE)
+  RLogRanks <- c(RLogRanks, log(1:corpusSize))
+  RLogFreq  <- c(RLogFreq,  log(as.numeric(RSfreq)))
+}
 
 
 #    
