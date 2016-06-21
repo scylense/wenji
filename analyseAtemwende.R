@@ -9,7 +9,7 @@
 #                
 ## 
 #
-# V 0.5.1
+# V 0.5.2
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
