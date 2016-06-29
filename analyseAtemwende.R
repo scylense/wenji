@@ -2,7 +2,7 @@
 #
 # Purpose:  Sample code to read and analyse Atemwende poems.
 #           
-# Preconditions: Poems exist as textfiles in the ../data/Atmewende folder.
+# Preconditions: Poems exist as textfiles in the ../data/Atemwende folder.
 #                                
 #                
 # Postcondition: ...
