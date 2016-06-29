@@ -239,7 +239,7 @@ AWwords <- unlist(strsplit(AW, "\\W+"))
 AWwords <- AWwords[AWwords != ""]
 
 # how many words are there?
-length(AWwords)  # 3556
+length(AWwords)  # 3554
 
 # make a copy with stemmed words
 AWstemmedWords <- wordStem(AWwords, language="de")
@@ -250,8 +250,8 @@ AWfreq <- sort(table(AWwords), decreasing = TRUE)
 AWstemmedFreq <- sort(table(AWstemmedWords), decreasing = TRUE)
 
 # how many unique words?
-length(AWfreq)  # 1765
-length(AWstemmedFreq)  # 1765
+length(AWfreq)  # 1710
+length(AWstemmedFreq)  # 1516
 
 
 # calculate TTR (Type Token Ratio)
@@ -423,6 +423,7 @@ plot(RLogRanks,
      RLogFreq,
      xlab = "log(Rank)",
      ylab = "log(Frequency)",
+     main = "WP samples (blue) vs. AW (red): as-is",
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col=densCols(RLogRanks,RLogFreq),
@@ -555,6 +556,7 @@ plot(RLogRanks,
      RLogFreq,
      xlab = "log(Rank)",
      ylab = "log(Frequency)",
+     main = "WP samples (blue) vs. AW (red): stemmed",
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col=densCols(RLogRanks,RLogFreq),
