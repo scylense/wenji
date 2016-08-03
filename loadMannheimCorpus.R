@@ -188,6 +188,27 @@ maxLS(sourceXML, 2) # Heinrich Böll
 maxLS(sourceXML, 7) # Thomas Mann
 maxLS(sourceXML, 29) # Bildzeitung, Juli 1967
 
+# Extracting the median length sentences:
+# 
+medLS <- function(xmlCorpus, iChild) {
+  # returns all median-length sentences in the document
+  # 
+  s <- xml_text(xml_find_all(xml_children(xmlCorpus)[[iChild]], ".//s"))
+  l <- length(s)
+  v <- numeric(l)
+  for (i in 1:l) {
+    v[i] <- length(strsplit(s[i], " ")[[1]])
+  }
+  return(s[which(v == round(median(v)))])
+}
+
+medLS(sourceXML, 4)# Max Frisch
+
+medLS(sourceXML, 4)[1:4] # Max Frisch
+medLS(sourceXML, 2)[1:4] # Heinrich Böll
+medLS(sourceXML, 7)[1:4] # Thomas Mann
+medLS(sourceXML, 29)[1:4] # Bildzeitung, Juli 1967
+
 
 #    
 # ==== TESTS ===================================================================
