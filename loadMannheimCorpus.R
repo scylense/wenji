@@ -3,9 +3,7 @@
 # Purpose:  Sample code to read Mannheim Corpus text in TEI I5 format and
 #           process the XML contents with the xml2 package.
 #           
-# Preconditions: i5.xml files exist in ../data/mk folder. The files need to be
-#                converted to utf-8 prior to processing since their native
-#                encoding, iso-8859-1, is not properly handled by the libraries.
+# Preconditions: i5.xml files exist in ../data/mk folder.
 #                                
 #                
 # Postcondition: ...
@@ -47,14 +45,14 @@ if (!require(xml2)) {
 
 test <- read_xml("<corpus>
                     <header type=\"corpus\">corpus header ...</header>
-                 <doc type=\"text\">
-                 <header type=\"document\">document header 1 ...</header>
-                 <text>text 1 ...</text>
-                 </doc>
-                 <doc type=\"text\">
-                 <header type=\"document\">document header 2 ...</header>
-                 <text>text 2 ...</text>
-                 </doc>
+                    <doc type=\"text\">
+                      <header type=\"document\">document header 1 ...</header>
+                      <text>text 1 ...</text>
+                    </doc>
+                    <doc type=\"text\">
+                      <header type=\"document\">document header 2 ...</header>
+                      <text>text 2 ...</text>
+                    </doc>
                  </corpus>")
 
 html_structure(test)
