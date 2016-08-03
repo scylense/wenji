@@ -77,6 +77,8 @@ xml_text(xml_find_all(test, ".//text"))
 # ==== PROCESS THE CORPUS ======================================================
 
 
+
+# Read the file into an R structure
 sourceXML <- read_xml(inFile)
 
 xml_name(sourceXML)   # idsCorpus
@@ -93,6 +95,7 @@ xml_length(sourceXML)  # 33
 
 length(xml_children(sourceXML))
 
+# Print table of contents from d.title tags
 for (i in 1:length(xml_children(sourceXML))) {
   print(paste(i, ": ",
               xml_contents(xml_find_all(xml_children(sourceXML)[[i]], ".//d.title")),
@@ -104,6 +107,7 @@ for (i in 1:length(xml_children(sourceXML))) {
 # the text contained in all sentences (tagged <s>) in child 4 - Max Frisch's
 # "Homo Faber"
 HF <- xml_text(xml_find_all(xml_children(sourceXML)[[4]], ".//s"))
+# See also below: AEC
 
 head(HF, 15)
 
@@ -116,7 +120,7 @@ HF[12]
 strsplit(HF[12], " ")
 length(strsplit(HF[12], " ")[[1]])
 
-# do this for each sentence
+# do this for each sentence for sentence length distribution
 HFsl <- numeric(length(HF))
 for (i in 1:length(HF)) {
   HFsl[i] <- length(strsplit(HF[i], " ")[[1]])
