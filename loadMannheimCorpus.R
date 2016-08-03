@@ -155,13 +155,15 @@ sld <- function(xmlCorpus, iChild) {
   return(table(v)/l)
 }
 
-points(sld(sourceXML, 7), type = "l", col="cornflowerblue")
+points(sld(sourceXML,  7), type = "l", col="cornflowerblue")
+points(sld(sourceXML, 29), type = "l", col="red")
 
 legend(160, 0.1,
-       c("Frisch", "Böll", "Mann"),
+       c("Frisch", "Böll", "Mann", "Bild"),
        lty = 1,
+       lwd = 0.5,
        bty = "n",
-       col = c("slategrey", "violetred", "cornflowerblue"))
+       col = c("slategrey", "violetred", "cornflowerblue", "red"))
 
 # Extracting the longest sentence:
 # 
