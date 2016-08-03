@@ -163,6 +163,26 @@ legend(160, 0.1,
        bty = "n",
        col = c("slategrey", "violetred", "cornflowerblue"))
 
+# Extracting the longest sentence:
+# 
+maxLS <- function(xmlCorpus, iChild) {
+  # returns the longest sentence in the document
+  # 
+  s <- xml_text(xml_find_all(xml_children(xmlCorpus)[[iChild]], ".//s"))
+  l <- length(s)
+  v <- numeric(l)
+  for (i in 1:l) {
+    v[i] <- length(strsplit(s[i], " ")[[1]])
+  }
+  return(s[which(v == max(v))])
+}
+
+maxLS(sourceXML, 4) # Max Frisch
+maxLS(sourceXML, 2) # Heinrich Böll
+maxLS(sourceXML, 7) # Thomas Mann
+maxLS(sourceXML, 29) # Bildzeitung, Juli 1967
+
+
 #    
 # ==== TESTS ===================================================================
 
