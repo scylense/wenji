@@ -70,6 +70,7 @@ xml_contents(xml_child(xml_children(test)[[3]], search="text"))
 
 # working with nodes based on the results of xpath expressions
 xml_find_all(test, ".//text")
+xml_text(xml_find_all(test, ".//text"))
 
 
 # ==== PROCESS THE CORPUS ======================================================
