@@ -136,8 +136,32 @@ hist(AECsl)
 # Hard to compare this way. Let's table the numbers and make an overlay plot
 # instead.
 
-plot(table(HFsl)/length(HF), type = "l", col="steelblue")
-points(table(AECsl)/length(AEC), type = "l", col="coral")
+plot(table(HFsl)/length(HF), type = "l", col="slategrey")
+points(table(AECsl)/length(AEC), type = "l", col="violetred")
+
+# ... and the master of the long sentence, Thomas Mann?
+# Putting the re-used code into a function...
+
+sld <- function(xmlCorpus, iChild) {
+  # sentence - length distribution
+  # returns table of relative sentence lngth frequencies
+  # 
+  s <- xml_text(xml_find_all(xml_children(xmlCorpus)[[iChild]], ".//s"))
+  l <- length(s)
+  v <- numeric(l)
+  for (i in 1:l) {
+    v[i] <- length(strsplit(s[i], " ")[[1]])
+  }
+  return(table(v)/l)
+}
+
+points(sld(sourceXML, 7), type = "l", col="cornflowerblue")
+
+legend(160, 0.1,
+       c("Frisch", "Böll", "Mann"),
+       lty = 1,
+       bty = "n",
+       col = c("slategrey", "violetred", "cornflowerblue"))
 
 #    
 # ==== TESTS ===================================================================
