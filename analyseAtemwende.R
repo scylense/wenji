@@ -9,7 +9,7 @@
 #                
 ## 
 #
-# V 0.6
+# V 0.6.1
 # Date:     June 2016
 # Author:   Boris Steipe and Yi Chen
 #
@@ -18,7 +18,13 @@
 #           - Complete code for lemmatization dictionary
 #           - Handle case
 #           - Review WP corpus (some residual markup still present)
+#           - Do frequency analysis on lemmata.
+#           - Clean up plot labels, add legends
 #
+# V 0.6.1   finish construction of lemmatization dictionary:
+#             - remove overly agressively lemmatized pronouns
+#             - added manual entries for pronouns
+#             - ensured that all lemmas are themselves present as tokens
 # V 0.6     - add stemming for frequency analysis,
 #           - create lemmatization dictionary (incomplete)           
 # V 0.5.1   print enrichment analysis into nice table
@@ -68,125 +74,14 @@ if (!require(tm)) {
 }
 
 
-# ==== DEFINITIONS =============================================================
+# ==== INITIALIZATIONS =========================================================
 
-
-# ...
+# lod object lemmaDict
+load(file = "../data/myLemmaDict.1.1.RData")
 
 # ==== FUNCTIONS ===============================================================
 
-inFile <- "../data/morphy/morphy-mapping-20110717.csv"
 
-
-makeLemmaDict <- function(fileName) {
-  # Creates a lemma dictionary from data found in inFile. inFile 
-  # must be a tab separated text document that contains (optionally) comment 
-  # lines prefixed with a "#", no header, and data lines in which the first column is a
-  # full-form and the second column contains lemmata. The full form is treated as case
-  # sensitive. In cases where the full form is ambiguous, we replace it with a
-  # mixed lemma: eg:
-  #    abduzierte   abduzieren
-  #    abduzierte   abduziert
-  # is replaced with the unique entry
-  #    abduzierte   abduzier(t/en)
-  # Since all full-forms are then unique, we can use them as rownames for
-  # efficient lookup of lemmata.
-  # 
-  tmp <- read.csv(fileName,
-                  comment.char = "#",
-                  blank.lines.skip = TRUE,
-                  header = FALSE,
-                  sep = "\t",
-                  stringsAsFactors = FALSE)
-  
-  # The Morphy dictionary seems to contain erroneous mappings, in which the
-  # token is upper-case but the lemma is lower case. Perhaps these are
-  # sentence-initial forms? Whatever the reason, if the lemma is lowercase then
-  # we convert the token to lowercase.
-  ucTokens <- grep("^[A-ZÄÖÜ]", tmp[ , 1])  # find all noun-case tokens
-  ucLcMixed <- ucTokens[grepl("^[a-zäöü]", tmp[ucTokens, 2])] # which of these
-                                                              # have lowercase
-                                                              # lemmas?
-  tmp[ucLcMixed, 1] <- tolower(tmp[ucLcMixed, 1])   # make these mixed entries
-                                                    # lowercase
-  
-  # find index of all duplicated tokens
-  dupIdx <- which(duplicated(tmp[ , 1]))
-  
-  # make a copy of tmp containing only unique tokens
-  tmpU <- tmp[- dupIdx, ]
-  
-  # make a list of unique duplicates (i.e. triplicates and higher are collapsed)
-  dupTokens <- unique(tmp[dupIdx, 1])
-  
-  for (token in dupTokens) {
-    # Note: this loop takes about 20 minutes on the original Morphy dictionary
-    # retrieve all lemmata for this token
-    lemmata <- tmp[grep(token, tmp[ , 1]), 2]
-    
-    # replace the lemma in the unique-tokens-dataframe with a poly lemma
-    # constructed from the lemmata
-    tmpU[tmpU[ , 1] == token, 2] <- makePolyLemma(lemmata)
-  }
-
-  # finally make a new, single column dataframe in which rownames are tokens
-  # and the entries are lemmata
-  myDict  <- data.frame(tmpU[ , 2], stringsAsFactors = FALSE)
-  rownames(myDict)  <- tmpU[ , 1]
-  names(myDict) <- "Lemma"
-  
-  return(myDict)
-}
-
-makePolyLemma <- function(x) {
-  # Convert tokens in x into a poly lemma.
-  # 
-
-  if (length(x) == 0) { return("") }
-
-  x <- unique(x) # collapse duplicated lemmata 
-  if (length(x) == 1) { return(x[1]) }
-  
-  l <- max(nchar(x))  # length of longest word
-  # put all words into a character matrix and pad to l with "" 
-  charMat <- character()
-  for (i in 1:length(x)) {
-    charMat <- rbind(charMat, c(unlist(strsplit(x[i], "")),
-                                character(l - nchar(x[i]))))
-  }
-  
-  # find the longest common prefix
-  prefix <- character()
-  for (i in 1:l) {
-    if (length(unique(charMat[ , i])) > 1) { 
-      break
-    }
-  }
-  if (i > 1) {
-    prefix <- paste(charMat[1, 1:(i-1)], collapse = "")
-  } else {
-    prefix <- ""
-  }
-  
-  # collect all specific suffixes using index i from above
-  suffixes <- character()
-  for (j in 1:length(x)) {
-    suffixes[j] <- paste(charMat[j, i:l], collapse = "")
-  }
-  # order by length, shortest first
-  suffixes <- suffixes[order(nchar(suffixes), decreasing = FALSE)]
-
-  # assemble the polylemma, collapsing suffixes into a "/" separated string
-  lemma <- sprintf("%s(%s)", prefix, paste(suffixes, collapse = "/"))
-  
-  return(lemma)
-}
-
-myLemmaDict <- makeLemmaDict(inFile)
-save(myLemmaDict, file = "../data/myLemmaDict.1.0.RData")
-load(file = "../data/myLemmaDict.1.0.RData")
-myLemmaDict["spielte", 1]
-#
 
 
 # ==== PROCESS =================================================================
