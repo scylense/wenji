@@ -10,12 +10,13 @@
 #                
 ## 
 #
-# V 0.1
+# V 0.1.1
 # Date:     August 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo:     - ...
 #
+# V 0.1.1   add sentence length analysis
 # V 0.1     first code
 #
 # ==============================================================================
@@ -102,12 +103,41 @@ for (i in 1:length(xml_children(sourceXML))) {
 # With this information, we can choose documents. Here, for example, we extract
 # the text contained in all sentences (tagged <s>) in child 4 - Max Frisch's
 # "Homo Faber"
-x <- xml_text(xml_find_all(xml_children(sourceXML)[[4]], ".//s"))
+HF <- xml_text(xml_find_all(xml_children(sourceXML)[[4]], ".//s"))
 
-head(x, 15)
+head(HF, 15)
 
 # ... etc.
 
+# For example, comparison of sentence lengths
+
+# ... how to get a sentence length
+HF[12]
+strsplit(HF[12], " ")
+length(strsplit(HF[12], " ")[[1]])
+
+# do this for each sentence
+HFsl <- numeric(length(HF))
+for (i in 1:length(HF)) {
+  HFsl[i] <- length(strsplit(HF[i], " ")[[1]])
+}
+
+hist(HFsl)
+
+# How does Max Frisch compare to Heinrich Böll?
+# AEC: "Ansichten Eines Clowns" (Document number 2)
+AEC <- xml_text(xml_find_all(xml_children(sourceXML)[[2]], ".//s"))
+AECsl <- numeric(length(AEC))
+for (i in 1:length(AEC)) {
+  AECsl[i] <- length(strsplit(AEC[i], " ")[[1]])
+}
+hist(AECsl)
+
+# Hard to compare this way. Let's table the numbers and make an overlay plot
+# instead.
+
+plot(table(HFsl)/length(HF), type = "l", col="steelblue")
+points(table(AECsl)/length(AEC), type = "l", col="coral")
 
 #    
 # ==== TESTS ===================================================================
