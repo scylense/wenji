@@ -8,14 +8,14 @@
 #                
 # Postcondition: ...
 #                
-## 
-#
-# V 0.1.1
-# Date:     August 2016
-# Author:   Boris Steipe and Yi Chen
 #
 # ToDo:     - ...
 #
+# Version:  0.1.1
+# Date:     August 2016
+# Author:   Boris Steipe and Yi Chen
+#
+# History:
 # V 0.1.1   add sentence length analysis
 # V 0.1     first code
 #
