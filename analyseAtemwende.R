@@ -403,6 +403,31 @@ points(log(1:length(WPstemmedFreq)), log(as.numeric(WPstemmedFreq)),
        cex = 0.7,
        col = "firebrick")
 
+# show a Zipf plot for stemmed words (updated format)
+plot(log10(1:length(WPstemmedFreq)),
+     xlab=expression(log[10](rank)), ylab=expression(log[10](frequency)),
+     xlim = c(0,5), ylim = c(0,5),
+     log10(as.numeric(WPstemmedFreq)),
+     xaxt = "n", yaxt = "n",
+     col = "cornflowerblue")
+axisMinorTicks(1, 9, mn=0, mx=5)
+axisMinorTicks(2, 9, mn=0, mx=5)
+# Superimpose QTS frequencies
+# l <- length(ziFreq)
+# points(log10(1:l), 
+#        log10(as.numeric(ziFreq[1:l])),
+#        cex=0.6)
+#        
+# cuts <- c(1, cV$cut)
+# for (i in 1:length(cV$cut)) {
+#   points(log10(cuts[i]:cuts[i+1]),
+#          log10(as.numeric(ziFreq[cuts[i]:cuts[i+1]])),
+#                 col = cV$col[i], bg = cV$col[i],
+#          pch=21, cex=0.4)
+# }
+       
+
+
 # compare Celan
 points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "seagreen")
 
