@@ -99,18 +99,6 @@ extractAuthorData <- function(fileName) {
 }
 
 
-calcMeanLogRankQ <- function(s) {
-  # calculate the mean log_10 frequency rank for the lower and upper
-  # quartile of characters in string "s"
-  # (global) rank vector ziRank must exist
-  r <- as.numeric(log10(ziRanks[unlist(strsplit(gsub(" ", "", s), ""))]))
-  q <- quantile(r, na.rm = TRUE)
-  l <- mean(r[r <= q[2]])
-  u <- mean(r[r >= q[4]])
-  return(c(l, mean(r, na.rm = TRUE), u))
-}
-
-
 # ==== PROCESS =================================================================
 
 authorDir <- "../data/qts/authers"
@@ -140,30 +128,6 @@ authorDF[i, "QTSbio"]   <- "未知。"
 save(authorDF, file="../data/authorDF.RData")
 
 # Done.
-
-# Add Mean Log Ranks and lower and upper log rank quartiles to data frame.
-
-poemDF <- data.frame(poemDF, 
-                     meanLR = numeric(nrow(poemDF)), 
-                     meanLRLQ = numeric(nrow(poemDF)), 
-                     meanLRUQ = numeric(nrow(poemDF)), 
-                     stringsAsFactors = FALSE)
-
-for (i in 1:nrow(poemDF)) {
-  lmu <- calcMeanLogRankQ(poemDF$bodyS[i])
-  poemDF$meanLRLQ[i] <- lmu[1]
-  poemDF$meanLR[i]   <- lmu[2]
-  poemDF$meanLRUQ[i] <- lmu[3]
-  if (! i %% 1000) { print(i) }
-}
-
-# save(poemDF, file = "../data/poemDF.RData")
-
-
-
-
-
-
 
 
 # ==== TESTS ===================================================================
