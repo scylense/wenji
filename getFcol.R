@@ -86,9 +86,9 @@ getFcol <- function(ranks, char, mode = "man", n = 7, bias = 0.7, cols, cuts) {
                               bias = bias) 
     # barplot(rep(1, n), col=spect(n), axes=F, main="")
     
-    maxF <- log(max(ranks))
-    minF <- log(min(ranks))
-    charF <- log(ranks[char])
+    maxF <- log10(max(ranks))
+    minF <- log10(min(ranks))
+    charF <- log10(ranks[char])
     iF <- (round((n-1) * (1 - (charF - minF) / (maxF - minF)))) + 1
     
     return(spect(n)[iF])
