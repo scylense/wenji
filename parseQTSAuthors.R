@@ -107,7 +107,7 @@ calcMeanLogRankQ <- function(s) {
   q <- quantile(r, na.rm = TRUE)
   l <- mean(r[r <= q[2]])
   u <- mean(r[r >= q[4]])
-  return(c(l, mean(r), u))
+  return(c(l, mean(r, na.rm = TRUE), u))
 }
 
 
