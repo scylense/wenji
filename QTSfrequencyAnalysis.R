@@ -17,19 +17,20 @@
 #
 # ToDo      
 #           
-# V 0.1     First code experiments
+# V 0.1     First code experiments, until Olomouc presentation
 #
 # ==============================================================================
 
 setwd(WENJIDIR)
 
+load("../data/poemDF.RData")
+load("../data/authorDF.RData")
+
+source("QuanTangShiFrequencies.R")
+source("WenYanFrequencies.R")
+
 # ==== PACKAGES ================================================================
 
-# showtext to plot Chinese characters
-if (!require(showtext)) {
-  install.packages("showtext")
-  library(showtext)
-}
 
 
 # ==== DEFINITIONS =============================================================
@@ -40,118 +41,22 @@ if (!require(showtext)) {
 # Li Shangyin 李商隐
 # Du Fu       杜甫
 # Song Zhiwen 宋之问
+# Wei YingWu  韦应物
 
 
 # ==== FUNCTIONS ===============================================================
 
-xyHor <- function(iC, nC, iL, nL) {
-  # return an x, y pair for grid coordinates according to 
-  # index and number of line and character
-  # in horizontal mode
-  return(c(iC + 0.5 , nL + 1 - iL + 0.5))
-}
-
-xyVert <- function(iC, nC, iL, nL) {
-  # return an x, y pair for grid coordinates according to 
-  # index and number of line and character
-  # in vertical mode
-  return(c(nL + 1 - iL + 0.5, nC + 1 - iC + 0.5))
-}
-
-getFcol <- function(tab, char, mode = "log", n = 7, bias = 0.7) {
-  # get a color representing the frequency of "char" in table
-  # "tab", spaced on a "mode" (log/lin) scale with "n"
-  # intervals
-  spect <- colorRampPalette(c("#d8ffe8",
-                              "#fbfbfb",
-                              "#fcca83",
-                              "#ff2d55"),
-                            bias = bias) 
-  # barplot(rep(1, n), col=spect(n), axes=F, main="")
-  
-  maxF <- log(max(tab))
-  minF <- log(min(tab))
-  charF <- log(tab[char])
-  iF <- (round((n-1) * (1 - (charF - minF) / (maxF - minF)))) + 1
-  
-  return(spect(n)[iF])
-}
-
-plotPoemFreq <- function(P, freq, mode = "h", fName = "poemFreq.pdf",
-                         nIntervals = 7, cex = 1, bias = 0.7) {
-  # plots poem P on a grid color-coded by frequencies found in
-  # table "freq", horizontal or vertical according to "mode" h or v.
-  lines <- unlist(strsplit(P$bodyS, "\\s+"))
-  nLines <- length(lines)
-  nChars <- max(nchar(lines))
-  padX <- 0.05
-  padY <- 0.05
-  
-  if (mode == "h") {
-    nHor <- nChars
-    nVert <- nLines
-    getXY <- xyHor
-  } else if (mode == "v") {
-    nHor <- nLines
-    nVert <- nChars
-    getXY <- xyVert
-  } else {
-    stop(sprintf("Unknown mode \"%s\".", mode))
-  }
-  
-  font.add("zhFont", "华文仿宋.ttf")
-  
-  pdf(fName)
-  
-  plot(c(0, nHor + 1), c(0, nVert + 1),
-       type = "n", axes = FALSE,
-       # main = sprintf("%s (%d:%d) (author)",
-       #                P$titleS,
-       #                P$QTSvol,
-       #                P$QTSnum),
-       xlab = "", ylab = ""
-  )
-  
-  showtext.begin()
-  
-  for (i in 1:nLines) {
-    for (j in 1:nChars) {
-      xy <- getXY(j, nChars, i, nLines)
-      zi <- substr(lines[i], j, j)
-      rect(xy[1] - 0.5 + padX,
-           xy[2] - 0.5 + padY,
-           xy[1] + 0.5 - padX,
-           xy[2] + 0.5 - padY,
-           col = getFcol(freq, zi, n = nIntervals, bias = bias),
-           border = "#AAAAAA",
-           lwd = 0.5)
-      text(xy[1], xy[2], zi, cex = cex, family = "zhFont")
-    }
-  }
-  
-  showtext.end()
-  dev.off()
-  
-}
+source("getFcol.R")
+source("plotPoems.R")
 
 
-calcMeanRank <- function(s) {
-  # calculate the mean frequency rank for all characters in a poem "s"
+calcMeanLogRank <- function(s) {
+  # calculate the mean log frequency rank for all characters in a poem "s"
   # rank vector ziRank must exist
   s <- unlist(strsplit(gsub(" ", "", s), ""))
-  return(mean(ziRanks[s]))
+  return(as.numeric(mean(log(ziRanks[s]))))
 }
 
-calcMeanQ <- function(s) {
-  # calculate the mean frequency rank for the lower and upper
-  # quartile of characters in a poem "s"
-  # rank vector ziRank must exist
-  r <- ziRanks[unlist(strsplit(gsub(" ", "", s), ""))]
-  q <- quantile(r)
-  l <- mean(r[r <= q[2]])
-  u <- mean(r[r >= q[4]])
-  return(c(l, u))
-}
 
 getQTSpoemsByAuthor <- function(name) {
   ID <- which(authorDF$nameS == name)
@@ -159,250 +64,327 @@ getQTSpoemsByAuthor <- function(name) {
   return(poemDF[rows, ])
 }
 
+getAuthorID <- function(name) {
+  ID <- which(authorDF$nameS == name)
+  if (length(ID) == 0) { stop("Name not found in authorDF.")}
+  if (length(ID) >  1) { stop("Name not unique in authorDF.")}
+  return(ID)
+}
+
+getAuthorName <- function(ID) {
+  name <- authorDF$nameS[authorDF$authorID == ID]
+  if (length(ID) == 0) { stop("ID not found in authorDF.")}
+  return(name)
+}
+
+
 
 # ==== PROCESS =================================================================
 
-load("../data/poemDF.RData")
-load("../data/authorDF.RData")
+
+# plot a poem on a character frequency grid
+
+# Wei Yingwu (刘禹锡), "桃源行"
+plotPoemCharRanks(poemDF[16479, ], ziRanks,
+                  fName = "test.pdf", subTitle = "(QTS ranks)")
+
+# Wang Wei (王维), "辋川集·孟城坳" (WRC #1)
+plotPoemCharRanks(poemDF[5247, ], ziRanks,
+                  fName = "test.pdf", subTitle = "(QTS ranks)")
 
 
-# === Compile Character frequencies
+# ==== select JueJu (Wu Ju) ... ===========
+iJueJu <- grep("^([^ ]{5} ){3}[^ ]{5}$", poemDF$bodyS)  # 2306 poems
+JJ <- poemDF[iJueJu, ]  
+rm(iJueJu)
 
 
-# paste poems together
-x <- paste(poemDF$bodyS, collapse = "")
-x <- gsub("\\s+", "", x)
-x <- unlist(strsplit(x, ""))
+# ==== gridplot the Wang River Cycle =======
+# Wang River Cycle: Vol 128, # 23 - 42
+WangRiverCycle <- poemDF[poemDF$QTSvol == 128 &
+                         poemDF$QTSnum >= 23 &
+                         poemDF$QTSnum <= 42, ]
 
-# get frequencies
-ziFreq <- sort(table(x), decreasing = TRUE)
+# plot one poem  
+plotPoemCharRanks(WangRiverCycle[5, ],
+                  ziRanks, subTitle = "(QTS ranks)",
+                  fName = "WW_WRC-05.pdf")
 
-# analyze
-plot(log(1:length(ziFreq)), log(ziFreq),
-     xlab="log(rank)", ylab="log(frequency)")
-sum(ziFreq == 1)
-sum(ziFreq == 2)
-hapax <- ziFreq[ziFreq == 1]
-names(hapax[1:100])
-
-plot(1:length(ziFreq), log(ziFreq),
-     xlab="rank", ylab="log(frequency)")
-
-# =====
-
-# plot a poem 
-
-P <- poemDF[16479, ]   # Wang Wei, "桃源行"
-
-plotPoemFreq(P, ziFreq, mode = "v", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-poemDF$authorID[poemDF$titleS == "将进酒"]
-authorDF$nameS[authorDF$authorID == 431]   # "李白"
-
-P <- poemDF[6899, ]  # 李白, "将进酒"
-plotPoemFreq(P, ziFreq, mode = "h", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-which(poemDF$titleS == "李凭箜篌引")
-P <- poemDF[18150, ]  # 李白, "将进酒"
-plotPoemFreq(P, ziFreq, mode = "h", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-x <- getQTSpoemsByAuthor("孟郊")
-
-P <- poemDF[17305, ]  # 
-plotPoemFreq(P, ziFreq, mode = "h", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-# Wang Wei and Song Zhiwen
-
-which(poemDF$QTSvol == 128 & poemDF$QTSnum == 21)
-P <- poemDF[5245, ]  # 
-plotPoemFreq(P, ziFreq, mode = "h", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-which(poemDF$QTSvol == 51 & poemDF$QTSnum == 1)
-P <- poemDF[2589, ]  # 
-plotPoemFreq(P, ziFreq, mode = "h", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-# more comparisons
-
-p1 <- which(poemDF$QTSvol == 128 & poemDF$QTSnum == 23)
-p2 <- which(poemDF$QTSvol ==  51 & poemDF$QTSnum ==  7) # 1
-
-p3 <- which(poemDF$QTSvol == 128 & poemDF$QTSnum == 24)
-p4 <- which(poemDF$QTSvol ==  51 & poemDF$QTSnum ==  7) # 2
-
-p5 <- which(poemDF$QTSvol == 128 & poemDF$QTSnum == 25)
-p6 <- which(poemDF$QTSvol ==  51 & poemDF$QTSnum ==  7) # 3
-
-P <- poemDF[p1, ]  # 
-plotPoemFreq(P, ziFreq, mode = "v", cex = 0.9, nIntervals = 7, bias = 0.9)
-
-P$bodyS <- "药栏听蝉噪 书幌见禽过 愁至愿甘寝 其如乡梦何峨"
-
-nchar(P$bodyS)
-
-sum(nchar(poemDF$bodyS) == 23)
-
-
-# ==== simplicity distributions ========
-
-# create named vector of ranks
-ziRanks <- 1:length(ziFreq)
-names(ziRanks) <- names(ziFreq)
-
-# replace ranks for characters with the same frequency with the 
-# mean rank of those characters
-ziRankRLE <- rle(as.numeric(ziFreq))
-start <- 1
-for (l in ziRankRLE$lengths) {
-  end <- start + l -1
-  ziRanks[start:end] <- mean(ziRanks[start:end])
-  start <- end + 1
+# plot entire Wang River Cycle
+for (i in 1:nrow(WangRiverCycle)) {
+  plotPoemCharRanks(WangRiverCycle[i, ],
+                    ziRanks, subTitle = "(QTS ranks)",
+                    fNameSuffix = ".QTS")
+  plotPoemCharRanks(WangRiverCycle[i, ],
+                    ziWYRanks, subTitle = "(WY ranks)",
+                    fNameSuffix = ".WY")
 }
 
 
+plotPoemGrid(WangRiverCycle, ranks = ziRanks,
+             nCol = 4, nRow = 5,
+             fName = "WW_WRC-grid.pdf")
 
 
-# add mean rank to all poems
+# ==== gridplot Song ZhiWen poems =======
+# Vol 52, # 19 - 38
+SZW <- poemDF[poemDF$QTSvol == 52 &
+              poemDF$QTSnum >= 19 &
+              poemDF$QTSnum <= 38, ]
+SZW <- SZW[order(SZW$meanLR), ]
+plotPoemGrid(SZW, ranks = ziRanks, nCol = 4, nRow = 5,
+             fName = "SZW-grid.pdf")
 
-poemDF <- data.frame(poemDF, 
-                     meanRank = numeric(nrow(poemDF)), 
-                     stringsAsFactors = FALSE)
+SZW_JJ <- JJ[JJ$authorID == 130,]
 
-for (i in 1:nrow(poemDF)) {
-  poemDF$meanRank[i] <- calcMeanRank(poemDF$bodyS[i])
-  if (! i %% 1000) { print(i) }
-}
+
+# ==== gridplot 李白 ===============
+LiBaiJJ <- JJ[JJ$authorID == getAuthorID("李白"), ]
+LiBaiJJ <- LiBaiJJ[order(LiBaiJJ$meanLR), ]
+
+plotPoemGrid(LiBaiJJ, ranks = ziRanks, nCol = 6, nRow = 8,
+             fName = "LiBai_JJ-grid.pdf")
+
+# ==== gridplot 李商隐 ==============
+LiShangYin <- JJ[JJ$authorID == getAuthorID("李商隐"), ]
+LiShangYin <- LiShangYin[order(LiShangYin$meanLR), ]
+plotPoemGrid(LiShangYin, ranks = ziRanks, nCol = 6, nRow = 5,
+             fName = "LiShangYin_JJ-grid.pdf")
+
+# ==== gridplot 杜甫 ================
+DuFuJJ <- JJ[JJ$authorID == getAuthorID("杜甫"), ]
+DuFuJJ <- DuFuJJ[order(DuFuJJ$meanLR), ]
+plotPoemGrid(DuFuJJ, ranks = ziRanks, nCol = 3, nRow = 3,
+             fName = "DuFu_JJ-grid.pdf")
+
+# ==== gridplot 韦应物 ==============
+WeiYingWuJJ <- JJ[JJ$authorID == getAuthorID("韦应物"), ]
+WeiYingWuJJ <- WeiYingWuJJ[order(WeiYingWuJJ$meanLR), ]
+plotPoemGrid(WeiYingWuJJ, ranks = ziRanks, nCol = 6, nRow = 10,
+             fName = "WeiYingWu_JJ-grid.pdf")
+
+# ==== gridplot all JueJu ==============
+JJ <- JJ[order(JJ$meanLR), ] # order by mean log rank
+plotPoemGrid(JJ, ranks = ziRanks, nCol = 43, nRow = 54,
+             fName = "All_JJ-grid.pdf")
+
+# Locate the four sample poems:
+# (1) Mèng Hào Rán 孟浩然 (430):
+#     “Chūn Xiǎo” 《春晓》 “Spring Dawn” (6874)
+#     getAuthorID("孟浩然")
+#     which(poemDF$titleS == "春晓" & poemDF$authorID == 430)
+#     which(JJ$poemID == 6874)   ... # 37
+#     ceiling(37/43); 629 %% 43  # row and column
+# (2) Wáng Wéi 王維: “Lù Zhài” 《鹿柴》 “Deer Grove” 
+#     grep("鹿柴", JJ$titleS)   # 102 (!), not # 306
+#     ceiling(103/43); 103 %% 43  # 3/17
+# (3) Wéi Yīng Wù 韋應物 (432):
+#     “Chú Zhōu Xī Jiàn” 《滁州西澗》 “Western Valley of Chú Zhōu”
+#     grep("滁州西涧", poemDF$titleS)
+#     this is not in JJ - but a JJ of the same mean LR is #629
+#     ceiling(629/ 43); 629 %% 43  # 15 / 27
+# (4) Liǔ Zōng Yuán 柳宗元: “Jiāng Xuě” 《江雪》 “River Snow”
+#     which(JJ$titleS == "江雪")   #1433
+#     ceiling(1433/ 43); 1433 %% 43   # 34 / 14
+
+
+# === list highest/lowest rank JJ
+JJ <- JJ[order(JJ$meanLR), ] # order by mean log rank
+printPoems(JJ[1:10,])
+printPoems(JJ[-(1:(nrow(JJ) - 10)), ])
+
+
+# === Individual analyses =======
+# === "韦应物" # 7837
+plotPoemCharRanks(poemDF[7837, ],
+                  ranks = ziRanks,
+                  fNameSuffix = ".QTS",
+                  subTitle = "(QTS frequency ranks)")
+plotPoemCharRanks(poemDF[7837, ],
+                  ranks = ziWYRanks,
+                  fNameSuffix = ".WY",
+                  subTitle = "(WY frequency ranks)")
+
+# === Liu Zong Yuan 江雪 # 16331
+plotPoemCharRanks(poemDF[16331, ],
+                  ranks = ziRanks,
+                  fNameSuffix = ".QTS",
+                  subTitle = "(QTS frequency ranks)")
+plotPoemCharRanks(poemDF[16331, ],
+                  ranks = ziWYRanks,
+                  fNameSuffix = ".WY",
+                  subTitle = "(WY frequency ranks)")
+
+# === Meng Hao Ran 春晓 # 6874
+plotPoemCharRanks(poemDF[6874, ],
+                  ranks = ziRanks,
+                  fNameSuffix = ".QTS",
+                  subTitle = "(QTS frequency ranks)")
+plotPoemCharRanks(poemDF[6874, ],
+                  ranks = ziWYRanks,
+                  fNameSuffix = ".WY",
+                  subTitle = "(WY frequency ranks)")
+
+
+
+
+
+# ==============================================================================
+
+# ==== frequency distributions ========
+
 
 
 # === compare mean rank distributions for QTS with those of Wang Wei
 
 WWpoems <- getQTSpoemsByAuthor("王维")
 
-hist(poemDF$meanRank[-WWpoems$poemID],
-     col = "#888888",
+hist(poemDF$meanLR[-WWpoems$poemID],
+     col = "#eeeeff",
      freq = FALSE,
-     ylim = c(0, 0.0025),
-     main = "QTS vs. Wang Wei mean ranks",
+     ylim = c(0, 2.5),
+     main = "QTS vs. Wang Wei mean log ranks",
      xlab = "mean rank of character frequency")
-hist(WWpoems$meanRank, col = "#DD000044", freq=FALSE, add=TRUE)
+hist(WWpoems$meanLR, col = "#DD000044", freq=FALSE, add=TRUE)
 
-plot(WWpoems$meanRank, cex = 0.7,
+x <- seq(0, 1, length.out = length(WWpoems$meanLR))
+plot(x,
+     WWpoems$meanLR,
+     cex = 0.7,
+     xaxt = "n",
      xlab = "Sequence in QTS", 
-     ylab = "mean rank of character frequency")
-lines(lowess(WWpoems$meanRank), col = "#DD000055", lwd = 3)
+     ylab = "mean log rank of character frequency")
+lines(lowess(x, WWpoems$meanLR),
+      col = "#DD000055", lwd = 3)
 
 # ==== compare Wang Wei with Li Shangyin
-
 LSYpoems <- getQTSpoemsByAuthor("李商隐")
-hist(LSYpoems$meanRank,
-     col = "#0000DD44",
+
+br <- seq(1.5, 3, by = 0.125)
+hist(LSYpoems$meanLR,
+     col = "#0000EE44",
      freq = FALSE,
-     breaks = seq(0, 1500, by = 100),
-     xlim = c(0, 1500),
-     ylim = c(0, 0.0025),
-     main = "Li ShangYin vs. Wang Wei mean ranks",
-     xlab = "mean rank of character frequency")
-hist(WWpoems$meanRank,
-     breaks = seq(0, 1500, by = 100),
+     breaks = br,
+     xlim = c(1.5, 3),
+     ylim = c(0, 3),
+     main = "Li ShangYin vs. Wang Wei mean log ranks",
+     xlab = "mean log rank of character frequency")
+hist(WWpoems$meanLR,
+     breaks = br,
      col = "#DD000044", freq=FALSE, add=TRUE)
 
-plot(LSYpoems$meanRank, cex = 0.7,
+
+x2 <- seq(0, 1, length.out = length(LSYpoems$meanLR))
+plot(x2,
+     LSYpoems$meanLR,
+     cex = 0.7,
+     xaxt = "n",
      xlab = "Sequence in QTS", 
-     ylab = "mean rank of character frequency")
-lines(lowess(LSYpoems$meanRank), col = "#0000DD55", lwd = 3)
+     ylab = "mean log rank of character frequency")
+lines(lowess(x2, LSYpoems$meanLR),
+      col = "#0000DD55", lwd = 3)
+lines(lowess(x, WWpoems$meanLR),
+      col = "#DD000055", lwd = 3)
 
-# === add mean rank top and bottom quartiles
 
-poemDF <- data.frame(poemDF, 
-                     meanLQ = numeric(nrow(poemDF)), 
-                     meanUQ = numeric(nrow(poemDF)), 
-                     stringsAsFactors = FALSE)
+# ==== calculate mean ranks separately for JueJu lines
 
-for (i in 1:nrow(poemDF)) {
-  luQ <- calcMeanQ(poemDF$bodyS[i])
-  poemDF$meanLQ[i] <- luQ[1]
-  poemDF$meanUQ[i] <- luQ[2]
-  if (! i %% 1000) { print(i) }
+iJueJu <- grep("^([^ ]{5} ){3}[^ ]{5}$", poemDF$bodyS)  # 2306 poems
+JJ <- poemDF[iJueJu, ]
+JJ <- JJ[order(JJ$meanLR), ] # order by mean Rank
+
+lineLRanks <- matrix(numeric(4 * nrow(JJ)), ncol = 4)
+colnames(lineLRanks) <- c("line.1", "line.2", "line.3", "line.4")
+
+for (i in 1:nrow(JJ)) {
+  lines <- unlist(strsplit(JJ$bodyS[i], " "))
+  for (j in 1:4){
+    lineLRanks[i, j] <- calcMeanLogRank(lines[j])
+  }
 }
 
+boxplot(lineLRanks,
+        cex.main = 0.8,
+        main = "mean log(ranks) of character frequency for JueJu lines")
 
-# ==== analyze LQ distributions
 
-hist(poemDF$meanLQ[-WWpoems$poemID],
-     col = "#888888",
-     freq = FALSE,
-     breaks = seq(0, 800, by = 20),
-     xlim = c(0, 300),
-     ylim = c(0, 0.03),
-     main = "QTS vs. Wang Wei mean LQ ranks",
-     xlab = "mean rank of LQ of character frequency")
-hist(WWpoems$meanLQ,
-     breaks = seq(0, 800, by = 20),
-     col = "#DD000044",
-     freq=FALSE, add=TRUE)
+# same for Wang Wei
+# 
+WW_JJ <- JJ[JJ$authorID == 389, ]
 
-plot(WWpoems$meanLQ, cex = 0.7,
-     xlab = "Sequence in QTS", 
-     ylab = "mean rank of LQ of character frequency")
-lines(lowess(WWpoems$meanLQ), col = "#DD000055", lwd = 3)
+WW_lr <- matrix(numeric(4 * nrow(WW_JJ)), ncol = 4)
+colnames(WW_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
-hist(LSYpoems$meanLQ[-WWpoems$poemID],
-     col = "#0000DD44",
-     freq = FALSE,
-     breaks = seq(0, 800, by = 20),
-     xlim = c(0, 300),
-     ylim = c(0, 0.03),
-     main = "LSY vs. Wang Wei mean LQ ranks",
-     xlab = "mean rank of LQ of character frequency")
-hist(WWpoems$meanLQ,
-     breaks = seq(0, 800, by = 20),
-     col = "#DD000044",
-     freq=FALSE, add=TRUE)
+for (i in 1:nrow(WW_JJ)) {
+  lines <- unlist(strsplit(WW_JJ$bodyS[i], " "))
+  for (j in 1:4){
+    WW_lr[i, j] <- calcMeanLogRank(lines[j])
+  }
+}
 
-plot(LSYpoems$meanLQ, cex = 0.7,
-     xlab = "Sequence in QTS", 
-     ylab = "mean rank of LQ of character frequency")
-lines(lowess(LSYpoems$meanLQ), col = "#0000DD55", lwd = 3)
-lines(lowess(WWpoems$meanLQ), col = "#DD000055", lwd = 3)
+boxplot(WW_lr,
+        cex.main = 0.8,
+        col = "#ddeedd",
+        main = "mean log(ranks) of character frequency for JueJu lines (Wang Wei only)")
 
-# ==== analyze UQ distributions
+WRC_lr <- matrix(numeric(4 * nrow(WangRiverCycle)), ncol = 4)
+colnames(WRC_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
-hist(poemDF$meanUQ[-WWpoems$poemID],
-     col = "#888888",
-     freq = FALSE,
-     breaks = seq(0, 6000, by = 100),
-     xlim = c(0, 4000),
-     ylim = c(0, 0.001),
-     main = "QTS vs. Wang Wei mean UQ ranks",
-     xlab = "mean rank of UQ of character frequency")
-hist(WWpoems$meanUQ,
-     breaks = seq(0, 6000, by = 100),
-     col = "#DD000044",
-     freq=FALSE, add=TRUE)
+for (i in 1:nrow(WangRiverCycle)) {
+  lines <- unlist(strsplit(WangRiverCycle$bodyS[i], " "))
+  for (j in 1:4){
+    WRC_lr[i, j] <- calcMeanLogRank(lines[j])
+  }
+}
 
-plot(WWpoems$meanUQ, cex = 0.7,
-     xlab = "Sequence in QTS", 
-     ylab = "mean rank of UQ of character frequency")
-lines(lowess(WWpoems$meanUQ), col = "#DD000055", lwd = 3)
+boxplot(WRC_lr,
+        cex.main = 0.8,
+        col = "#ccccee",
+        main = "mean log(ranks) of character frequency for JueJu lines (Wang River Cycle only)")
 
-hist(LSYpoems$meanUQ[-WWpoems$poemID],
-     col = "#0000DD44",
-     freq = FALSE,
-     breaks = seq(0, 6000, by = 100),
-     xlim = c(0, 4000),
-     ylim = c(0, 0.001),
-     main = "LSY vs. Wang Wei mean UQ ranks",
-     xlab = "mean rank of UQ of character frequency")
-hist(WWpoems$meanUQ,
-     breaks = seq(0, 6000, by = 100),
-     col = "#DD000044",
-     freq=FALSE, add=TRUE)
+#  === Li Shangyin
+LSY_JJ <- JJ[JJ$authorID == 1069, ]
 
-plot(LSYpoems$meanUQ, cex = 0.7,
-     xlab = "Sequence in QTS", 
-     ylab = "mean rank of UQ of character frequency")
-lines(lowess(LSYpoems$meanUQ), col = "#0000DD55", lwd = 3)
-lines(lowess(WWpoems$meanUQ), col = "#DD000055", lwd = 3)
+LSY_lr <- matrix(numeric(4 * nrow(LSY_JJ)), ncol = 4)
+colnames(LSY_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
+for (i in 1:nrow(LSY_JJ)) {
+  lines <- unlist(strsplit(LSY_JJ$bodyS[i], " "))
+  for (j in 1:4){
+    LSY_lr[i, j] <- calcMeanLogRank(lines[j])
+  }
+}
+
+boxplot(LSY_lr,
+        cex.main = 0.8,
+        col = "#eecccc",
+        main = "mean log(ranks) of character frequency for JueJu lines (Li Shangyin only)")
+
+# combine 
+
+allLr <- matrix(nrow = nrow(JJ), ncol=16)
+allLr[1:nrow(JJ), 1:4] <- lineLRanks
+allLr[1:nrow(LSY_lr), 5:8] <- LSY_lr
+allLr[1:nrow(WW_lr), 9:12] <- WW_lr
+allLr[1:nrow(WRC_lr), 13:16] <- WRC_lr
+
+par(mar = c(5,4.5,0.1,0.1))
+boxplot(allLr,
+        col = c(rep("#eeeeee", 4), 
+                rep("#eecccc", 4),
+                rep("#ddeedd", 4),
+                rep("#ccccee", 4)),
+        xaxt = "n",
+        ylab = expression(mean(log[10](rank))),
+        xlab = "Lines 1 - 4 for:  all Jue Ju / Li Shangyin / Wang Wei / Wang River Cycle",
+        na = "ignore" ) 
+abline(v=4.5)
+abline(v=8.5)
+abline(v=12.5)
+axis(1, at=1:16, labels = rep(1:4, 4))
+
+# The line - 1 outlier:
+which(WRC_lr[,1] == min(WRC_lr[,1])) # 5
 
 
 #    
