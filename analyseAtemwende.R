@@ -297,9 +297,9 @@ head(AWfreq, 100)
 tail(AWfreq, 100)
 
 # plot log rank vs. log frequency (Zipf plot)
-plot(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col="seagreen")
+plot(log10(1:length(AWfreq)), log10(as.numeric(AWfreq)), col="seagreen")
 # compare stemmed frequencies
-points(log(1:length(AWstemmedFreq)), log(as.numeric(AWstemmedFreq)), cex = 0.7, col="firebrick")
+points(log10(1:length(AWstemmedFreq)), log10(as.numeric(AWstemmedFreq)), cex = 0.7, col="firebrick")
 
 
 # look at all words that appear exactly twice
@@ -397,9 +397,9 @@ cat(sprintf("\n\n\n === TTR for WP articles is %7.5f (stemmed:  %7.5f) ===\n\n\n
 
 
 # Show a Zipf plot
-plot(log(1:length(WPfreq)), log(as.numeric(WPfreq)), col = "skyblue")
+plot(log10(1:length(WPfreq)), log10(as.numeric(WPfreq)), col = "skyblue")
 # compare stemmed version
-points(log(1:length(WPstemmedFreq)), log(as.numeric(WPstemmedFreq)),
+points(log10(1:length(WPstemmedFreq)), log10(as.numeric(WPstemmedFreq)),
        cex = 0.7,
        col = "firebrick")
 
@@ -429,7 +429,7 @@ axisMinorTicks(2, 9, mn=0, mx=5)
 
 
 # compare Celan
-points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "seagreen")
+points(log10(1:length(AWfreq)), log10(as.numeric(AWfreq)), col = "seagreen")
 
 
 # ==============================================================================
@@ -449,14 +449,14 @@ RSwords <- sample(WPwords, corpusSize)
 RSfreq <- sort(table(RSwords), decreasing = TRUE)
 
 # plot
-plot(log(1:length(RSfreq)), 
-     log(as.numeric(RSfreq)),
-     xlab = "log(Rank)",
-     ylab = "log(Frequency)",
+plot(log10(1:length(RSfreq)), 
+     log10(as.numeric(RSfreq)),
+     xlab = expression(log[10](rank)),
+     ylab = expression(log[10](frequency)),
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col = "seagreen")
-points(log(1:length(AWfreq)), log(as.numeric(AWfreq)), col = "firebrick")
+points(log10(1:length(AWfreq)), log10(as.numeric(AWfreq)), col = "firebrick")
 
 # repeat this many times and do a density plot of the sampled numbers
 # 
@@ -468,23 +468,23 @@ RLogFreq  <- numeric()
 for (i in 1:N){
   RSwords <- sample(WPwords, corpusSize)
   RSfreq  <- sort(table(RSwords), decreasing = TRUE)
-  RLogRanks <- c(RLogRanks, log(1:length(RSfreq)))
-  RLogFreq  <- c(RLogFreq,  log(as.numeric(RSfreq)))
+  RLogRanks <- c(RLogRanks, log10(1:length(RSfreq)))
+  RLogFreq  <- c(RLogFreq,  log10(as.numeric(RSfreq)))
 }
 
 # plot this as a density plot
 plot(RLogRanks, 
      RLogFreq,
-     xlab = "log(Rank)",
-     ylab = "log(Frequency)",
+     xlab = expression(log[10](rank)),
+     ylab = expression(log[10](frequency)),
      main = "WP samples (blue) vs. AW (red): as-is",
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col=densCols(RLogRanks,RLogFreq),
      pch=19,
      cex=1.5)
-points(log(1:length(AWfreq)),
-       log(as.numeric(AWfreq)),
+points(log10(1:length(AWfreq)),
+       log10(as.numeric(AWfreq)),
        pch = 19,
        col = "firebrick",
        cex = 0.5)
@@ -582,14 +582,15 @@ RSwords <- sample(WPstemmedWords, corpusSize)
 RSfreq <- sort(table(RSwords), decreasing = TRUE)
 
 # plot
-plot(log(1:length(RSfreq)), 
-     log(as.numeric(RSfreq)),
-     xlab = "log(Rank)",
-     ylab = "log(Frequency)",
+plot(log10(1:length(RSfreq)), 
+     log10(as.numeric(RSfreq)),
+     xlab = expression(log[10](rank)),
+     ylab = expression(log[10](frequency)),
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col = "seagreen")
-points(log(1:length(AWstemmedFreq)), log(as.numeric(AWstemmedFreq)), col = "firebrick")
+points(log10(1:length(AWstemmedFreq)),
+       log10(as.numeric(AWstemmedFreq)), col = "firebrick")
 
 # repeat this many times and do a density plot of the sampled numbers
 # 
@@ -601,23 +602,23 @@ RLogFreq  <- numeric()
 for (i in 1:N){
   RSwords <- sample(WPstemmedWords, corpusSize)
   RSfreq  <- sort(table(RSwords), decreasing = TRUE)
-  RLogRanks <- c(RLogRanks, log(1:length(RSfreq)))
-  RLogFreq  <- c(RLogFreq,  log(as.numeric(RSfreq)))
+  RLogRanks <- c(RLogRanks, log10(1:length(RSfreq)))
+  RLogFreq  <- c(RLogFreq,  log10(as.numeric(RSfreq)))
 }
 
 # plot this as a density plot
 plot(RLogRanks, 
      RLogFreq,
-     xlab = "log(Rank)",
-     ylab = "log(Frequency)",
+     xlab = expression(log[10](rank)),
+     ylab = expression(log[10](frequency)),
      main = "WP samples (blue) vs. AW (red): stemmed",
      xlim = c(0, 8),
      ylim = c(0, 5.2),
      col=densCols(RLogRanks,RLogFreq),
      pch=19,
      cex=1.5)
-points(log(1:length(AWstemmedFreq)),
-       log(as.numeric(AWstemmedFreq)),
+points(log10(1:length(AWstemmedFreq)),
+       log10(as.numeric(AWstemmedFreq)),
        pch = 19,
        col = "firebrick",
        cex = 0.5)
