@@ -24,13 +24,6 @@
 
 setwd(WENJIDIR)
 
-load("../data/poemDF.RData")
-load("../data/authorDF.RData")
-
-source("QuanTangShiFrequencies.R")
-source("WenYanFrequencies.R")
-source("mapCol.R")
-source("plotPoems.R")
 
 # ==== PACKAGES ================================================================
 
@@ -58,27 +51,6 @@ calcMeanLogRank <- function(s) {
   s <- unlist(strsplit(gsub(" ", "", s), ""))
   return(as.numeric(mean(log(ziRanks[s]))))
 }
-
-
-getQTSpoemsByAuthor <- function(name) {
-  ID <- which(authorDF$nameS == name)
-  rows <- which(poemDF$authorID == ID)
-  return(poemDF[rows, ])
-}
-
-getAuthorID <- function(name) {
-  ID <- which(authorDF$nameS == name)
-  if (length(ID) == 0) { stop("Name not found in authorDF.")}
-  if (length(ID) >  1) { stop("Name not unique in authorDF.")}
-  return(ID)
-}
-
-getAuthorName <- function(ID) {
-  name <- authorDF$nameS[authorDF$authorID == ID]
-  if (length(ID) == 0) { stop("ID not found in authorDF.")}
-  return(name)
-}
-
 
 
 # ==== PROCESS =================================================================
@@ -115,9 +87,6 @@ for (i in 1:nrow(WangRiverCycle)) {
   plotPoem(WangRiverCycle[i, ],
            map = wyMap, subTitle = "(WY ranks)",
            fNameSuffix = ".WY")
-  plotPoem(WangRiverCycle[i, ],
-           map = posMap, subTitle = "(POS tags)",
-           fNameSuffix = ".POS")
 }
 
 plotPoemGrid(WangRiverCycle, qtsMap,
@@ -126,10 +95,7 @@ plotPoemGrid(WangRiverCycle, qtsMap,
 plotPoemGrid(WangRiverCycle, wyMap,
              nCol = 4, nRow = 5,
              fName = "WW_WRC-grid.WY.pdf")
-plotPoemGrid(WangRiverCycle, posMap,
-             nCol = 4, nRow = 5,
-             fName = "WW_WRC-grid.POS.pdf")
- 
+
 
 # ==== gridplot Song ZhiWen poems =======
 # Vol 52, # 19 - 38
@@ -386,34 +352,6 @@ axis(1, at=1:16, labels = rep(1:4, 4))
 
 # what is the outlier low value in line 1?
 which(WRC_lr[,1] == min(WRC_lr[,1])) #   Ah. 空山不见人。。。
-
-
-# === MANUALLY JUDGE JUE JU ====================================================
-# To manually judge Jue Ju, we present them in random order so as not to induce
-# a poet-bias. The randomized Jue Ju are printed into one line, with a
-# scale bar. Judgers replace one of the symbols in the scale bar with an x.
-
-# 
-# |=====-=====|  	画君年少时 如今君已老 今时新识人 知君旧时好	   5285: ...
-# |=====-=====|  	北邙不种田 但种松与柏 松柏未生处 留待市朝客	  11693: ...
-# |=====-=====|  	孤灯照不寐 风雨满西林 多少关心事 书灰到夜深	  27846: ...
-# |=====-=====|  	玉管朝朝弄 清歌日日新 折花当驿路 寄与陇头人	   1685: ...
-
-rJJ <- JJ[sample(1:nrow(JJ)), ]
-sink(file="randomJJ.txt")
-
-for (i in 1:nrow(rJJ)) {
-  p <- rJJ[i, ]
-  cat(sprintf("|=====-=====|  \t%20s\t  %5d: (%3d:%3d)\t%-5s -\t%s\n",
-              p$bodyS,
-              p$poemID,
-              p$QTSvol,
-              p$QTSnum,
-              authorDF$nameS[authorDF$authorID == p$authorID],
-              p$titleS))
-}
-
-sink(NULL)
 
 
 #    
