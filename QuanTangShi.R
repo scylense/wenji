@@ -59,6 +59,25 @@ source("plotPoems.R")
 
 # ==== FUNCTIONS ===============================================================
 
+getQTSpoemsByAuthor <- function(name) {
+  ID <- which(authorDF$nameS == name)
+  rows <- which(poemDF$authorID == ID)
+  return(poemDF[rows, ])
+}
+
+getAuthorID <- function(name) {
+  ID <- which(authorDF$nameS == name)
+  if (length(ID) == 0) { stop("Name not found in authorDF.")}
+  if (length(ID) >  1) { stop("Name not unique in authorDF.")}
+  return(ID)
+}
+
+getAuthorName <- function(ID) {
+  name <- authorDF$nameS[authorDF$authorID == ID]
+  if (length(ID) == 0) { stop("ID not found in authorDF.")}
+  return(name)
+}
+
 
 
 # ==== PROCESS =================================================================
