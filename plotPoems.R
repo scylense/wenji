@@ -2,20 +2,21 @@
 #
 # Purpose:  return rank-based colors for characters of a poem
 #           
-# Precondition: 
+# Precondition: system font "华文仿宋.ttf" exists
 #                
-# Postcondition:  
+# Postcondition:  may print plots to pdf
 #                
 #
 # Notes: 
 # 
 #
-# V 1.0
+# V 2.0
 # Date:     October 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      
 #           
+# V 2.0     Use new mapCol function and switch for different types of coloring
 # V 1.0     Stable code
 #
 # ==============================================================================
@@ -49,13 +50,13 @@ printPoems <- function(P) {
   #     ...
   for (i in 1:nrow(P)) {
     p <- P[i,]
-    cat(sprintf("%5d: (%3d:%3d) %-5s - %-20s   %s\n",
+    cat(sprintf("%20s\t  %5d: (%3d:%3d)\t%-5s -\t%s\n",
+                p$bodyS,
                 p$poemID,
                 p$QTSvol,
                 p$QTSnum,
                 authorDF$nameS[authorDF$authorID == p$authorID],
-                p$titleS,
-                p$bodyS))
+                p$titleS))
   }
 }
 
@@ -92,18 +93,46 @@ xyVert <- function(iC, nC, iL, nL) {
 }
 
 
-plotPoemCharRanks <- function(P,
-                              ranks,
-                              mode = "h", 
-                              fName = "",
-                              fNameSuffix = "",
-                              subTitle = "",
-                              cex,
-                              colMode = "man",
-                              nIntervals,
-                              bias,
-                              cols,
-                              cuts) {
+getTagMatrix <- function(s) {
+  # 
+  # Purpose: return a matrix of pos tags, one column per tag, one row per line
+  # 
+  # Parameters:
+  #     s: a string of pos tags
+  # Value:
+  #     m: a matrix of tags
+  
+  lines <- unlist(strsplit(s, "\\s+"))
+  
+  l <- list() # put values into a list at first because we don't know what the
+              # max number of characters in a line will be
+  maxC <- 0
+  for (i in 1:length(lines)) {
+    l[[i]] <- unlist(strsplit(lines[i], "\\+"))
+    maxC <- max(maxC, length(l[[i]]))
+    for (j in 1:length(l[[i]])) {
+      l[[i]][j] <- unlist(strsplit(l[[i]][j], "#"))[2]
+    }
+  }
+  
+  m <- matrix(character(length(lines) * maxC), nrow = length(lines))
+  
+  for (i in 1:length(l)) {
+    for (j in 1:length(l[[i]])) {
+      m[i, j] <- l[[i]][j]
+    }
+  }
+  return(m)
+}
+
+
+plotPoem <- function(P,
+                     map,
+                     mode = "h", 
+                     fName = "",
+                     fNameSuffix = "",
+                     subTitle = "",
+                     cex) {
   # 
   # Purpose: plots poem P on a grid colour-coded by ranks found in
   #            table "ranks", horizontal or vertical according to "mode" h or v.
@@ -119,8 +148,9 @@ plotPoemCharRanks <- function(P,
   #                    $QTSnum
   #                    $titleS
   #                    $bodyS
+  #                    $POS    (if POS tag coloring is used)
   #                    
-  #     ranks:       table of ranks for each character in P
+  #     map:         a map of values to colors. See mapCol.R for details.
   #     mode:        "h" for horizontal lines, "v" for plotting in vertical
   #                    (traditional) order
   #     fName:       file name for the postscript output. If empty, filename 
@@ -130,9 +160,6 @@ plotPoemCharRanks <- function(P,
   #                    identify the source of the character ranks (QTS or WY).
   #     cex:         character expansion factor. If missing, compute a good
   #                    value based on the number of lines.
-  #     colMode:     "man" or "log"
-  #     nIntervals:  see colorRampPalette() for colMode log
-  #     bias:        see colorRampPalette() for colMode log
   # Value:
   #     none, plots to PDF file
   
@@ -153,6 +180,10 @@ plotPoemCharRanks <- function(P,
   nLines <- length(lines)
   nChars <- max(nchar(lines))
   
+  if (map$type == "pos") { # part-of-speech map
+    posMat <- getTagMatrix(P$POS)
+  }
+  
   if (missing(cex)) {  # calculate a reasonable cex
     m <- max(nLines, nChars)
     if (m <= 5) {
@@ -166,7 +197,7 @@ plotPoemCharRanks <- function(P,
   padX <- 0.05
   padY <- 0.05
   
-  # compute row and column lengths
+  # compute row and column lengths for mode h or v
   if (mode == "h") {
     nHor <- nChars - 1
     nVert <- nLines -1
@@ -198,17 +229,18 @@ plotPoemCharRanks <- function(P,
   showtext.begin()
   
   # adjust title / subtitle cex
-  incTitleCex <- 1.2 
+  incTitleCex <- 1.2     # relative scale to main text
   incSubTitleCex <- 0.9
   
   w <- strwidth(title, cex = cex * incTitleCex)
-  if (w  > nHor) {
+  if (w  > nHor) {    # reduce scale for long titles that would print beyond
+                      # the margin
     fCex <- nHor / w
   } else {
     fCex <- 1.0
   }
 
-  # adjust subtitle height
+  # adjust subtitle vertical separtion from title
   dY <- 1.5 * strheight(title, cex = cex)
   
   if (mode == "h") {
@@ -219,10 +251,10 @@ plotPoemCharRanks <- function(P,
     tPos <- 2
   }
   
-  # title
+  # plot title
   text(tX, nVert + 2.5, title, cex = incTitleCex * cex * fCex,
        family = "zhFont", pos = tPos, offset = 0)
-  #subtitle
+  # plot subtitle
   text(tX, nVert + 2.5 - dY, subTitle, cex = incSubTitleCex * cex * fCex,
        family = "zhFont", pos = tPos, offset = 0)
   
@@ -231,12 +263,19 @@ plotPoemCharRanks <- function(P,
     for (j in 1:nChars) {
       xy <- getXY(j, nChars, i, nLines)
       zi <- substr(lines[i], j, j)
+
+      if (map$type == "pos") {
+        char <- posMat[i, j]
+      } else if (map$type == "char") {
+        char <- zi
+      }
+      cCol <- mapCol(map, char)
+      
       rect(xy[1] - 0.5 + padX,
            xy[2] - 0.5 + padY,
            xy[1] + 0.5 - padX,
            xy[2] + 0.5 - padY,
-           col = getFcol(ranks, zi, mode = colMode, n = nIntervals, bias = bias,
-                         cols = cols, cuts = cuts),
+           col = cCol,
            border = "#AAAAAA",
            lwd = 0.5)
       text(xy[1], xy[2], zi, cex = cex, family = "zhFont")
@@ -250,22 +289,23 @@ plotPoemCharRanks <- function(P,
 
 
 
-plotPoemGrid <- function(P, ranks, nCol, nRow,
-                         colMode = "man", fName = "poemGrid.pdf") {
+plotPoemGrid <- function(P, map, nCol, nRow,
+                         fName = "poemGrid.pdf") {
   
-  # Purpose: plots poems P color-coded by frequency ranks found in
-  #            table "ranks", on a nCol by nRow grid. Use colMode
-  #            as the mode for getFcol() and save result to pdf
+  # Purpose: plots poems P color-coded by values found in
+  #            map, on a nCol by nRow grid. Save result to pdf
   #            file fName.
   # 
   # Parameters:
-  #     P:     ...
-  #     ranks: ...
+  #     P:           a data frame row that is taken from poemDF or has at least
+  #                    the following elements:
+  #                    $bodyS  (if rank based colouring is used)
+  #                    $POS    (if pos tag colouring is used)
+  #                    
+  #     map:         a map of values to colors. See mapCol.R for details.
+  #     nCol, nRow: layout of grid on the page
   # Value:
   #     None. Saves pdf file.
-  
-  nIntervals <- 7
-  bias <- 0.7
   
   padX <- 0
   padY <- 0
@@ -287,22 +327,32 @@ plotPoemGrid <- function(P, ranks, nCol, nRow,
   fGrid <- matrix(rep("#FFFFFF", xGrid * yGrid), ncol = xGrid, nrow = yGrid)
   
   iPoem <- 0
-  for (iRow in 1:nRow) {
-    dY <- (iRow - 1) * (maxRow + nSep) # top cell
-    for (iCol in 1:nCol) {
-      dX <- (iCol - 1) * (maxChar + nSep) # left cell
+  for (iRow in 1:nRow) { # for each row in grid ...
+    dY <- (iRow - 1) * (maxRow + nSep) # top cell position
+    
+    for (iCol in 1:nCol) { # for each column in grid...
+      dX <- (iCol - 1) * (maxChar + nSep) # left cell position
       iPoem <- iPoem + 1 # update Poem index
       lines <- unlist(strsplit(P$bodyS[iPoem], "\\s+")) # get lines
-      for (i in 1:length(lines)) {
+      if (map$type == "pos") { # switch for map type
+        posMat <- getTagMatrix(P$POS[iPoem])
+      }
+      
+      for (i in 1:length(lines)) { # for each line in poem ...
         chars <- unlist(strsplit(lines[i], "")) # get chars
-        y <- i + dY          # calculate row height
-        for (j in 1:length(chars)) {
-          x <- j + dX        # calculate x position
-          zi <- chars[j]          
+        y <- i + dY          # calculate row y position
+        
+        for (j in 1:length(chars)) { # for each character in line ...
+          x <- j + dX        # calculate character x position
+          
+          if (map$type == "pos") { # switch for map type
+            char <- posMat[i, j]
+          } else if (map$type == "char") {
+            char <- chars[j]
+          }
+          
           # get color and put in grid cell
-          fGrid[y, x] <- getFcol(ranks, zi,
-                                 mode = colMode,
-                                 n = nIntervals, bias = bias)
+          fGrid[y, x] <- mapCol(map, char)
         }
       }
     }
@@ -312,7 +362,7 @@ plotPoemGrid <- function(P, ranks, nCol, nRow,
   
   par(mar=c(0, 0, 0, 0), oma=c(0, 0, 0, 0)) # turn all margins off
   
-  plot(c(0, xGrid + nSep), c(0, yGrid + nSep),
+  plot(c(0, xGrid + nSep), c(0, yGrid + nSep), # plot empty frame
        type = "n", axes = FALSE,
        xlab = "", ylab = "",
        asp = xGrid/yGrid
@@ -321,7 +371,7 @@ plotPoemGrid <- function(P, ranks, nCol, nRow,
   
   for (i in 1:nrow(fGrid)) {
     for (j in 1:ncol(fGrid)) {
-      rect(j + padX,
+      rect(j + padX,    # draw colored rectangle
            yGrid - (i - 1) - padY,
            j + 1 - padX,
            yGrid - i + padY,
@@ -343,22 +393,42 @@ plotPoemGrid <- function(P, ranks, nCol, nRow,
 
 if (FALSE) { # Do not execute when source()'d
 
-  plotPoemCharRanks(poemDF[5251, ], ziRanks,
-                    fName = "test.pdf", subTitle = "(QTS ranks)")
-  plotPoemCharRanks(poemDF[5251, ], ziRanks, mode = "v",
-                    fName = "test.pdf", subTitle = "(QTS ranks)")
-  plotPoemCharRanks(poemDF[16479, ], ziRanks,
-                    fName = "test.pdf", subTitle = "(QTS ranks)")
-  plotPoemCharRanks(poemDF[16479, ], ziRanks, mode = "v",
-                    fName = "test.pdf", subTitle = "(QTS ranks)")
-
+  plotPoem(poemDF[5251, ], map = qtsMap,
+           fName = "test1.qts.pdf", subTitle = "(QTS ranks)")
+  plotPoem(poemDF[5251, ], map = wyMap,
+           fName = "test1.wy.pdf", subTitle = "(WY ranks)")
+  plotPoem(poemDF[5251, ], map = posMap,
+           fName = "test1.pos.pdf", subTitle = "(POS tags)")
+  
+  plotPoem(poemDF[16479, ], map = qtsMap,
+           fName = "test2.qts.pdf", subTitle = "(QTS ranks)")
+  plotPoem(poemDF[16479, ], map = wyMap,
+           fName = "test2.wy.pdf", subTitle = "(WY ranks)")
+  plotPoem(poemDF[16479, ], map = posMap,
+           fName = "test2.pos.pdf", subTitle = "(POS tags)")
+  
+  
   plotPoemGrid(poemDF[poemDF$QTSvol == 128 &
                         poemDF$QTSnum >= 23 &
                         poemDF$QTSnum <= 42, ],
-               ranks = ziRanks, nCol = 4, nRow = 5,
-               fName = "test.pdf")
+               map = qtsMap, nCol = 4, nRow = 5,
+               fName = "testGrid.qts.pdf")
+  
+  plotPoemGrid(poemDF[poemDF$QTSvol == 128 &
+                        poemDF$QTSnum >= 23 &
+                        poemDF$QTSnum <= 42, ],
+               map = wyMap, nCol = 4, nRow = 5,
+               fName = "testGrid.wy.pdf")
+  
+  plotPoemGrid(poemDF[poemDF$QTSvol == 128 &
+                        poemDF$QTSnum >= 23 &
+                        poemDF$QTSnum <= 42, ],
+               map = posMap, nCol = 4, nRow = 5,
+               fName = "testGrid.pos.pdf")
   
   
+  
+    
 }  # END  if (FALSE)  block
 
 #    
