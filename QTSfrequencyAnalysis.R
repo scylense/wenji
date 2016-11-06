@@ -11,12 +11,13 @@
 # Notes: 
 # 
 #
-# V 0.1
+# V 0.2
 # Date:     October 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      
 #           
+# V 0.2     Add part-of-speech code and new mapCol function, consolidate.
 # V 0.1     First code experiments, until Olomouc presentation
 #
 # ==============================================================================
@@ -28,6 +29,8 @@ load("../data/authorDF.RData")
 
 source("QuanTangShiFrequencies.R")
 source("WenYanFrequencies.R")
+source("mapCol.R")
+source("plotPoems.R")
 
 # ==== PACKAGES ================================================================
 
@@ -36,19 +39,18 @@ source("WenYanFrequencies.R")
 # ==== DEFINITIONS =============================================================
 
 # frequently searched authors:
-# Wang Wei    王维
-# Li Bai      李白
-# Li Shangyin 李商隐
-# Du Fu       杜甫
-# Song Zhiwen 宋之问
-# Wei YingWu  韦应物
-
+# Du Fu        杜甫   (507)
+# Li Bai       李白   (431)
+# Li Shangyin  李商隐 (1069)
+# Liu Zongyuan 柳宗元 (812)
+# Meng Haoran  孟浩然 (430)
+# Song Zhiwen  宋之问 (130)
+# Wang Wei     王维   (389)
+# Wei Yingwu   韦应物 (432)
+# 
+# getAuthorID("韦应物")
 
 # ==== FUNCTIONS ===============================================================
-
-source("getFcol.R")
-source("plotPoems.R")
-
 
 calcMeanLogRank <- function(s) {
   # calculate the mean log frequency rank for all characters in a poem "s"
@@ -85,12 +87,12 @@ getAuthorName <- function(ID) {
 # plot a poem on a character frequency grid
 
 # Wei Yingwu (刘禹锡), "桃源行"
-plotPoemCharRanks(poemDF[16479, ], ziRanks,
-                  fName = "test.pdf", subTitle = "(QTS ranks)")
+plotPoem(poemDF[16479, ], qtsMap,
+         fName = "test.pdf", subTitle = "(QTS ranks)")
 
 # Wang Wei (王维), "辋川集·孟城坳" (WRC #1)
-plotPoemCharRanks(poemDF[5247, ], ziRanks,
-                  fName = "test.pdf", subTitle = "(QTS ranks)")
+plotPoem(poemDF[5247, ], qtsMap,
+         fName = "test.pdf", subTitle = "(QTS ranks)")
 
 
 # ==== select JueJu (Wu Ju) ... ===========
@@ -105,26 +107,29 @@ WangRiverCycle <- poemDF[poemDF$QTSvol == 128 &
                          poemDF$QTSnum >= 23 &
                          poemDF$QTSnum <= 42, ]
 
-# plot one poem  
-plotPoemCharRanks(WangRiverCycle[5, ],
-                  ziRanks, subTitle = "(QTS ranks)",
-                  fName = "WW_WRC-05.pdf")
-
 # plot entire Wang River Cycle
 for (i in 1:nrow(WangRiverCycle)) {
-  plotPoemCharRanks(WangRiverCycle[i, ],
-                    ziRanks, subTitle = "(QTS ranks)",
-                    fNameSuffix = ".QTS")
-  plotPoemCharRanks(WangRiverCycle[i, ],
-                    ziWYRanks, subTitle = "(WY ranks)",
-                    fNameSuffix = ".WY")
+  plotPoem(WangRiverCycle[i, ],
+           map = qtsMap, subTitle = "(QTS ranks)",
+           fNameSuffix = ".QTS")
+  plotPoem(WangRiverCycle[i, ],
+           map = wyMap, subTitle = "(WY ranks)",
+           fNameSuffix = ".WY")
+  plotPoem(WangRiverCycle[i, ],
+           map = posMap, subTitle = "(POS tags)",
+           fNameSuffix = ".POS")
 }
 
-
-plotPoemGrid(WangRiverCycle, ranks = ziRanks,
+plotPoemGrid(WangRiverCycle, qtsMap,
              nCol = 4, nRow = 5,
-             fName = "WW_WRC-grid.pdf")
-
+             fName = "WW_WRC-grid.QTS.pdf")
+plotPoemGrid(WangRiverCycle, wyMap,
+             nCol = 4, nRow = 5,
+             fName = "WW_WRC-grid.WY.pdf")
+plotPoemGrid(WangRiverCycle, posMap,
+             nCol = 4, nRow = 5,
+             fName = "WW_WRC-grid.POS.pdf")
+ 
 
 # ==== gridplot Song ZhiWen poems =======
 # Vol 52, # 19 - 38
@@ -132,43 +137,43 @@ SZW <- poemDF[poemDF$QTSvol == 52 &
               poemDF$QTSnum >= 19 &
               poemDF$QTSnum <= 38, ]
 SZW <- SZW[order(SZW$meanLR), ]
-plotPoemGrid(SZW, ranks = ziRanks, nCol = 4, nRow = 5,
+plotPoemGrid(SZW, qtsMap, nCol = 4, nRow = 5,
              fName = "SZW-grid.pdf")
 
-SZW_JJ <- JJ[JJ$authorID == 130,]
+SZW_JJ <- JJ[JJ$authorID == 130, ]
 
 
 # ==== gridplot 李白 ===============
 LiBaiJJ <- JJ[JJ$authorID == getAuthorID("李白"), ]
 LiBaiJJ <- LiBaiJJ[order(LiBaiJJ$meanLR), ]
 
-plotPoemGrid(LiBaiJJ, ranks = ziRanks, nCol = 6, nRow = 8,
+plotPoemGrid(LiBaiJJ, map = qtsMap, nCol = 6, nRow = 8,
              fName = "LiBai_JJ-grid.pdf")
 
 # ==== gridplot 李商隐 ==============
 LiShangYin <- JJ[JJ$authorID == getAuthorID("李商隐"), ]
 LiShangYin <- LiShangYin[order(LiShangYin$meanLR), ]
-plotPoemGrid(LiShangYin, ranks = ziRanks, nCol = 6, nRow = 5,
+plotPoemGrid(LiShangYin, map = qtsMap, nCol = 6, nRow = 5,
              fName = "LiShangYin_JJ-grid.pdf")
 
 # ==== gridplot 杜甫 ================
 DuFuJJ <- JJ[JJ$authorID == getAuthorID("杜甫"), ]
 DuFuJJ <- DuFuJJ[order(DuFuJJ$meanLR), ]
-plotPoemGrid(DuFuJJ, ranks = ziRanks, nCol = 3, nRow = 3,
+plotPoemGrid(DuFuJJ, map = qtsMap, nCol = 3, nRow = 3,
              fName = "DuFu_JJ-grid.pdf")
 
 # ==== gridplot 韦应物 ==============
 WeiYingWuJJ <- JJ[JJ$authorID == getAuthorID("韦应物"), ]
 WeiYingWuJJ <- WeiYingWuJJ[order(WeiYingWuJJ$meanLR), ]
-plotPoemGrid(WeiYingWuJJ, ranks = ziRanks, nCol = 6, nRow = 10,
+plotPoemGrid(WeiYingWuJJ, map = qtsMap, nCol = 6, nRow = 10,
              fName = "WeiYingWu_JJ-grid.pdf")
 
 # ==== gridplot all JueJu ==============
 JJ <- JJ[order(JJ$meanLR), ] # order by mean log rank
-plotPoemGrid(JJ, ranks = ziRanks, nCol = 43, nRow = 54,
-             fName = "All_JJ-grid.pdf")
+plotPoemGrid(JJ, map = qtsMap, nCol = 43, nRow = 54,
+             fName = "All_JJ-grid.qts.pdf")
 
-# Locate the four sample poems:
+# Locate the four sample poems on the full grid:
 # (1) Mèng Hào Rán 孟浩然 (430):
 #     “Chūn Xiǎo” 《春晓》 “Spring Dawn” (6874)
 #     getAuthorID("孟浩然")
@@ -196,43 +201,37 @@ printPoems(JJ[-(1:(nrow(JJ) - 10)), ])
 
 # === Individual analyses =======
 # === "韦应物" # 7837
-plotPoemCharRanks(poemDF[7837, ],
-                  ranks = ziRanks,
-                  fNameSuffix = ".QTS",
-                  subTitle = "(QTS frequency ranks)")
-plotPoemCharRanks(poemDF[7837, ],
-                  ranks = ziWYRanks,
-                  fNameSuffix = ".WY",
-                  subTitle = "(WY frequency ranks)")
-
+plotPoem(poemDF[7837, ],
+         map = qtsMap,
+         fNameSuffix = ".QTS",
+         subTitle = "(QTS frequency ranks)")
+plotPoem(poemDF[7837, ],
+         map = wyMap,
+         fNameSuffix = ".WY",
+         subTitle = "(WY frequency ranks)")
 # === Liu Zong Yuan 江雪 # 16331
-plotPoemCharRanks(poemDF[16331, ],
-                  ranks = ziRanks,
-                  fNameSuffix = ".QTS",
-                  subTitle = "(QTS frequency ranks)")
-plotPoemCharRanks(poemDF[16331, ],
-                  ranks = ziWYRanks,
-                  fNameSuffix = ".WY",
-                  subTitle = "(WY frequency ranks)")
+plotPoem(poemDF[16331, ],
+         map = qtsMap,
+         fNameSuffix = ".QTS",
+         subTitle = "(QTS frequency ranks)")
+plotPoem(poemDF[16331, ],
+         map = wyMap,
+         fNameSuffix = ".WY",
+         subTitle = "(WY frequency ranks)")
 
 # === Meng Hao Ran 春晓 # 6874
-plotPoemCharRanks(poemDF[6874, ],
-                  ranks = ziRanks,
-                  fNameSuffix = ".QTS",
-                  subTitle = "(QTS frequency ranks)")
-plotPoemCharRanks(poemDF[6874, ],
-                  ranks = ziWYRanks,
-                  fNameSuffix = ".WY",
-                  subTitle = "(WY frequency ranks)")
+plotPoem(poemDF[6874, ],
+         map = qtsMap,
+         fNameSuffix = ".QTS",
+         subTitle = "(QTS frequency ranks)")
+plotPoem(poemDF[6874, ],
+         map = wyMap,
+         fNameSuffix = ".WY",
+         subTitle = "(WY frequency ranks)")
 
 
 
-
-
-# ==============================================================================
-
-# ==== frequency distributions ========
-
+# ===== FREQUENCY DISTRIBUTIONS ================================================
 
 
 # === compare mean rank distributions for QTS with those of Wang Wei
@@ -327,6 +326,8 @@ boxplot(WW_lr,
         col = "#ddeedd",
         main = "mean log(ranks) of character frequency for JueJu lines (Wang Wei only)")
 
+# same for Wang River Cycle only
+# 
 WRC_lr <- matrix(numeric(4 * nrow(WangRiverCycle)), ncol = 4)
 colnames(WRC_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
@@ -383,8 +384,36 @@ abline(v=8.5)
 abline(v=12.5)
 axis(1, at=1:16, labels = rep(1:4, 4))
 
-# The line - 1 outlier:
-which(WRC_lr[,1] == min(WRC_lr[,1])) # 5
+# what is the outlier low value in line 1?
+which(WRC_lr[,1] == min(WRC_lr[,1])) #   Ah. 空山不见人。。。
+
+
+# === MANUALLY JUDGE JUE JU ====================================================
+# To manually judge Jue Ju, we present them in random order so as not to induce
+# a poet-bias. The randomized Jue Ju are printed into one line, with a
+# scale bar. Judgers replace one of the symbols in the scale bar with an x.
+
+# 
+# |=====-=====|  	画君年少时 如今君已老 今时新识人 知君旧时好	   5285: ...
+# |=====-=====|  	北邙不种田 但种松与柏 松柏未生处 留待市朝客	  11693: ...
+# |=====-=====|  	孤灯照不寐 风雨满西林 多少关心事 书灰到夜深	  27846: ...
+# |=====-=====|  	玉管朝朝弄 清歌日日新 折花当驿路 寄与陇头人	   1685: ...
+
+rJJ <- JJ[sample(1:nrow(JJ)), ]
+sink(file="randomJJ.txt")
+
+for (i in 1:nrow(rJJ)) {
+  p <- rJJ[i, ]
+  cat(sprintf("|=====-=====|  \t%20s\t  %5d: (%3d:%3d)\t%-5s -\t%s\n",
+              p$bodyS,
+              p$poemID,
+              p$QTSvol,
+              p$QTSnum,
+              authorDF$nameS[authorDF$authorID == p$authorID],
+              p$titleS))
+}
+
+sink(NULL)
 
 
 #    
