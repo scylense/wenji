@@ -71,6 +71,7 @@ for (i in 1:length(qtsMap$cat)) {
   qtsMap$cat[i] <- sum(i > qtsMap$cut) + 1
 }
 
+rm(i)
 
 # == derive a global map object wyMap for WenYan character frequencies
 wyMap <- list()
@@ -400,6 +401,7 @@ posMap$labels[i] <- "PU (punctuation)"
 names(posMap$cat) <- nam
 rm(catCols)
 rm(nam)
+rm(i)
 
 
 
