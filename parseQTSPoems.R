@@ -28,8 +28,9 @@
 # For file repair documentation: see notes in repairShitanSources.R
 # 
 #
-# V 1.0
-# Date:     May. 2016
+# V 1.1
+# 
+# Date:     May - November 2016
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      Move flagsDF and poemFlagsDF in poemAnalysis.R
@@ -38,6 +39,8 @@
 #           Refine parsing
 #           Improve documentation
 #           
+# V 1.1     Add Mean Log Ranks and lower and upper log rank quartile columns to
+#           poemDF data frame.
 # V 1.0     - use Unicode replace glyph "�" for unknown characters.
 #           - most requirements implemented
 # V 0.1     write functions to extract and analyse poems
