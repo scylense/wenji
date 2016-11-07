@@ -399,6 +399,8 @@ posMap$col[i] <- catCols[i]
 posMap$labels[i] <- "PU (punctuation)"
 
 names(posMap$cat) <- nam
+names(posMap$col) <- nam
+names(posMap$labels) <- nam
 rm(catCols)
 rm(nam)
 rm(i)
