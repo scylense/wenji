@@ -19,12 +19,13 @@
 #             
 # 
 #
-# V 2.0
-# Date:     October 2016
+# V 2.1
+# Date:     October - November 2016
 # Author:   Boris Steipe and Yi Chen
 #
-# ToDo:     Add function to print legend.      
+# ToDo:          
 #           
+# V 2.1     Move code to calculate scaled WY frequencies to WenYanFrequencies.R
 # V 2.0     Refactored from retired code getFcol.R with entirely new concept
 # V 1.0     Stable code
 #
@@ -76,26 +77,7 @@ rm(i)
 # == derive a global map object wyMap for WenYan character frequencies
 wyMap <- list()
 wyMap$type <- "char"
-wyMap$cat <- as.numeric(ziWYFreq[names(ziFreq)])
-names(wyMap$cat) <- names(ziFreq)
-
-# scale observations to qts
-x <- which(is.na(wyMap$cat))
-# scale is the ratio of characters present in both
-sc <- sum(ziFreq[- x]) / sum(wyMap$cat, na.rm = TRUE)
-# adjust NA values by this scale
-wyMap$cat[x] <- ziFreq[x] / sc
-# recalculate scale
-sc <- sum(ziFreq) / sum(wyMap$cat)
-# rescale wyMap$cat
-wyMap$cat <- round(wyMap$cat * sc)
-# change all 0's to 1
-wyMap$cat[wyMap$cat == 0] <- 1
-# rescale one last time 
-wyMap$cat <- round(wyMap$cat * (sum(ziFreq) / sum(wyMap$cat)))
-# check
-# min(wyMap$cat)  # must be 1
-# sum(ziFreq) / sum(wyMap$cat)  #  0.999295
+wyMap$cat <- ziWYscaledFreq
 
 wyMap$cut <- c(    22, # top 22 (~15% of all char)
                    73, # ~ 30%
@@ -119,8 +101,6 @@ for (i in 1:length(wyMap$cat)) {
 }
 # clean up
 rm(i)
-rm(x)
-rm(sc)
 
 # == create a global map object for part-of-speech Tags
 posMap <- list(type   = "pos",
