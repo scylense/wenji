@@ -4,21 +4,26 @@
 #           
 # Precondition: The frequency list exists in
 #               "../data/JunDa/JunDa_FrequencyList.tsv"
+#                 (global) ziFreq exists - the frequencies from QTS
 #                 (global) ziRanks exists - the ranks from QTS
 #                
 # Postcondition:  (global) ziWYFreq exists
+#                 (global) ziWYscaledFreq exists
 #                 (global) ziWYRanks exists
 #                
 #
-# Notes: 
+# Notes: ziWYscaledFreq has same order of characters as ziFreq for direct
+#          comparison of frequency differences.
 # 
 #
-# V 1.0
+# V 1.1
 # Date:     October 2016
 # Author:   Boris Steipe and Yi Chen
 #
-# ToDo      
+# ToDo      Remove leftover code from analysis section
 #           
+# V 1.1     Add code to scale frequencies to QTS global counts; keep global
+#             object ziWYscaledFreq. 
 # V 1.0     Stable code
 # V 0.1     First code experiments
 #
@@ -83,7 +88,37 @@ ziWYRanks <- ziWYRanks * ( length(ziWYRanks) / length(wyRanks) )
 ziWYRanks[naWY] <- ziRanks[naWY] 
 rm(naWY)
 
-# = Done: ziWYFreq and ziWYRanks are ready
+# == Done: ziWYFreq and ziWYRanks are ready
+
+ziWYscaledFreq <- as.numeric(ziWYFreq[names(ziFreq)])
+names(ziWYscaledFreq) <- names(ziFreq)
+
+# scale observations to qts
+x <- which(is.na(ziWYscaledFreq))
+# scale is the ratio of characters present in both tables
+sc <- sum(ziFreq[- x]) / sum(ziWYscaledFreq, na.rm = TRUE)
+# adjust NA values by this scale
+ziWYscaledFreq[x] <- ziFreq[x] / sc
+# recalculate scale
+sc <- sum(ziFreq) / sum(ziWYscaledFreq)
+# rescale wyMap$cat
+ziWYscaledFreq <- round(ziWYscaledFreq * sc)
+# change all 0's to 1
+ziWYscaledFreq[ziWYscaledFreq == 0] <- 1
+# rescale one last time 
+ziWYscaledFreq <- round(ziWYscaledFreq * (sum(ziFreq) / sum(ziWYscaledFreq)))
+# check
+# min(ziWYscaledFreq)  # must be 1
+# sum(ziFreq) / sum(ziWYscaledFreq)  #  0.999295
+
+# clean up
+rm(x)
+rm(sc)
+
+# == Done: ziWYscaledFreq is ready
+
+
+
 
 #    
 # ==== ANALYZE WY DISTRIBUTION =================================================
