@@ -7,11 +7,12 @@
 # Postcondition: The enclosed functios are defined
 # 
 # 
-# Version:  1.0 
-# Date:     October 2016 
+# Version:  1.1 
+# Date:     October - November 2016 
 # Author:   Boris Steipe and Yi Chen
 # 
 # History:
+#   V 1.1  add pareto plot function
 #   V 1.0  First code
 # 
 # ==============================================================================
@@ -44,6 +45,23 @@ axisMinorTicks <- function(ax, n, t.ratio=0.5, mn, mx,...){
   
   axis(ax, at = minor.ticks, tcl = par("tcl") * t.ratio, labels = FALSE)
 }
+
+pareto <- function(x, col) {
+  # plot a pareto-plot of x using colours col
+  oPar <- par(mar = c(3, 4, 0.75, 0))
+  barplot(as.numeric(x) / sum(as.numeric(x)) * 100,
+          ylim = c(0,105),
+          ylab = "% of total",
+          names.arg = names(x),
+          cex.names = 0.5,
+          col = col[names(x)])
+  points((1:length(x) * 1.2) - 0.5,
+         cumsum(as.numeric(x) / sum(as.numeric(x)) * 100),
+         type = "b", pch = 21, bg = col[names(x)])
+  par(oPar)
+}
+
+
 
 #    
 # ==== TESTS ===================================================================
