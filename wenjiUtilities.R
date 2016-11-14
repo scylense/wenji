@@ -46,8 +46,11 @@ axisMinorTicks <- function(ax, n, t.ratio=0.5, mn, mx,...){
   axis(ax, at = minor.ticks, tcl = par("tcl") * t.ratio, labels = FALSE)
 }
 
-pareto <- function(x, col) {
+pareto <- function(x, col, sorted = FALSE) {
   # plot a pareto-plot of x using colours col
+  if (sorted) {
+    x <- sort(x, decreasing = TRUE)
+  }
   oPar <- par(mar = c(3, 4, 0.75, 0))
   barplot(as.numeric(x) / sum(as.numeric(x)) * 100,
           ylim = c(0,105),
