@@ -26,6 +26,19 @@ setwd(WENJIDIR)
 
 load("../data/poemDF.RData")
 load("../data/authorDF.RData")
+load("../data/ziRef.RData")
+
+
+# Scripts that are commented out in this section are referenced here for
+# documentation only and do not normally need to be run again. These were
+# written to prepare data that was subsequently saved and is being loaded where
+# required.
+#
+# file.edit("repairShitanSources.R")   # prapare sources
+# file.edit("parseQTSPoems.R")         # parse poems
+# file.edit("parseQTSAuthors.R")       # parse authors
+# file.edit("posTagQTS.R")             # add POS tags
+
 
 
 # prepare ziFreq and ziRanks objects
@@ -87,7 +100,7 @@ getAuthorName <- function(ID) {
 file.edit("QTSfrequencyAnalysis.R")
 
 
-# port-of-speech analysis:
+# part-of-speech analysis:
 file.edit("QTSposAnalysis.R")
 
 
