@@ -11,14 +11,15 @@
 # Notes: 
 # 
 #
-# V 0.2
-# Date:     October 2016
+# V 0.3
+# Date:     October 2016 - January 2017
 # Author:   Boris Steipe and Yi Chen
-#
-# ToDo      
 #           
+# V 0.3     Moved calcMeanLogRank() to wenjiUtilities.R
 # V 0.2     Add part-of-speech code and new mapCol function, consolidate.
 # V 0.1     First code experiments, until Olomouc presentation
+#
+# ToDo:     Add contemporary word frequencies      
 #
 # ==============================================================================
 
@@ -45,12 +46,6 @@ setwd(WENJIDIR)
 
 # ==== FUNCTIONS ===============================================================
 
-calcMeanLogRank <- function(s) {
-  # calculate the mean log frequency rank for all characters in a poem "s"
-  # rank vector ziRank must exist
-  s <- unlist(strsplit(gsub(" ", "", s), ""))
-  return(as.numeric(mean(log(ziRanks[s]))))
-}
 
 
 # ==== PROCESS =================================================================
