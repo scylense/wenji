@@ -34,7 +34,7 @@ load("../data/ziRef.RData")
 # written to prepare data that was subsequently saved and is being loaded where
 # required.
 #
-# file.edit("repairShitanSources.R")   # prapare sources
+# file.edit("repairShitanSources.R")   # prepare sources
 # file.edit("parseQTSPoems.R")         # parse poems
 # file.edit("parseQTSAuthors.R")       # parse authors
 # file.edit("posTagQTS.R")             # add POS tags
