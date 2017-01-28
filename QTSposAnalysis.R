@@ -274,6 +274,8 @@ for (i in 1:nC) {
 x <- which(ziCats == "X")
 parPOS(names(ziCats)[x[1]])
 
+parPOS("山")
+
 
 catOrder <- 
   c("V","VAdj","NV","NAdv","N","NAdj","Adj","AdJV","X","Syn","Adv","VAdv")
@@ -313,6 +315,7 @@ plotQTS_WY <- function(zC) {
              as.numeric(ziWYscaledFreq[names(ziFreq)[x]])),
        ylab = sprintf("log_10( f(QTS)/f(WY) ) for word category %s",
                       paste(zC, collapse = ", ")),
+       ylim = c(-2, 2),
        type = "n")
   points(1:nC,
          log10(as.numeric(ziFreq[names(ziFreq)[x]]) /
@@ -321,7 +324,7 @@ plotQTS_WY <- function(zC) {
          pch = 21,
          col = ziCatCols[ziCats[x]],
          bg = ziCatCols[ziCats[x]])
-  abline(h=1, col="#777777", lwd=0.5)
+  abline(h=0, col="#777777", lwd=0.5)
   
 }
 
@@ -341,6 +344,6 @@ plotQTS_WY(c("VAdj"))
 # ==== TESTS ===================================================================
 
 
-
+ 
 
 # [END]
