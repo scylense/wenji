@@ -65,6 +65,18 @@ pareto <- function(x, col, sorted = FALSE) {
 }
 
 
+calcMeanLogRank <- function(s, ranks = ziRanks, noLog = FALSE) {
+  # Calculate the mean (log) frequency rank for all characters in a poem "s"
+  # using rank vector ranks.
+  s <- unlist(strsplit(gsub(" ", "", s), ""))
+  if (noLog) {
+    x <- as.numeric(mean(ranks[s]))
+  } else {
+    x <- as.numeric(mean(log(ranks[s])))
+  }
+  return(x)
+}
+
 
 #    
 # ==== TESTS ===================================================================
