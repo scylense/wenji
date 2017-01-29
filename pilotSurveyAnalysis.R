@@ -128,12 +128,53 @@ cor(rMean, fQTSlogMean)   # 0.507
 cor(rMean, fWYlogMean)    # 0.148
 
 
-plot(rMean, fQTSMean)
-abline(lm(fQTSMean ~ rMean), col = "maroon")
+# plot judgement vs. QTS simplicity
+myFit <- lm(fQTSMean ~ rMean)
+plot(rMean, fQTSMean, 
+     main = "Mean reader's judgement vs. QTS character \"simplicity\"",
+     cex.main = 1.0,
+     type = "n",
+     xlim = c(1, 11), ylim = c(0, 700),
+     xlab = "mean reader's score (simple/not simple)",
+     ylab = "mean character frequency rank of poem in QTS")
+abline(myFit, col = "maroon")
+text(rMean, fQTSMean, labels = names(rMean), cex = 0.7)
+text(9, 0, label = "coefficient of correlation: 0.546",
+     col = "maroon", cex = 0.9)
 
-plot(rMean, fWYMean)
+# plot pp and pc limits
+o <- order(rMean)
+r2 <- rMean[o]
+f2 <- fQTSMean[o]
+pc<-predict(lm(f2 ~ r2), int="c")
+pp<-predict(lm(f2 ~ r2), int="p")
+matlines(r2, pc, lty=c(1,2,2), col="maroon1", lwd = 0.5)
+matlines(r2, pp, lty=c(1,3,3), col="maroon2", lwd = 0.5)
+
+
+
+# plot judgement vs. WY simplicity
+plot(rMean, fWYMean, 
+     main = "Mean reader's judgement vs. WY character \"simplicity\"",
+     cex.main = 1.0,
+     type = "n",
+     xlim = c(1, 11), ylim = c(0, 700),
+     xlab = "mean reader's score (simple/not simple)",
+     ylab = "mean character frequency rank of poem in Wen Yan corpus")
 abline(lm(fWYMean ~ rMean), col = "skyblue")
+text(rMean, fWYMean, labels = names(rMean), cex = 0.7)
+text(9, 0, label = "coefficient of correlation: 0.339",
+     col = "skyblue", cex = 0.9)
+o <- order(rMean)
+r2 <- rMean[o]
+f2 <- fWYMean[o]
+pc<-predict(lm(f2 ~ r2), int="c")
+pp<-predict(lm(f2 ~ r2), int="p")
+matlines(r2, pc, lty=c(1,2,2), col="skyblue1", lwd = 0.5)
+matlines(r2, pp, lty=c(1,3,3), col="skyblue2", lwd = 0.5)
 
+
+# The same with ranks ...
 plot(rMean, fQTSlogMean)
 abline(lm(fQTSlogMean ~ rMean), col = "darkviolet")
 
@@ -149,10 +190,18 @@ permuteCorrelations(f = fWYlogMean,  myCol = "darkturquoise") # p = 0.27381
 
 
 # QTS vs. WY mean frequency ranks ...
-cor(fQTSMean, fWYMean) # 0.825
-plot(fQTSMean, fWYMean, type = "n")
-abline(lm(fWYMean ~ fQTSMean), col = "#BBFFCC")
-text(fQTSMean, fWYMean, labels = names(fQTSMean), cex = 0.8)
+cor(fQTSMean, fWYMean)  # 0.825
+plot(fQTSMean, fWYMean, 
+     main = "QTS vs. WY character \"simplicity\"",
+     cex.main = 1.0,
+     type = "n",
+     xlim = c(0, 700), ylim = c(0, 700),
+     xlab = "mean character frequency rank of poem in QTS",
+     ylab = "mean character frequency rank of poem in Wen Yan corpus")
+abline(lm(fWYMean ~ fQTSMean), col = "seagreen")
+text(fQTSMean, fWYMean, labels = names(rMean), cex = 0.7)
+text(500, 0, label = "coefficient of correlation: 0.825",
+     col = "seagreen", cex = 0.9)
 
 cor(fQTSlogMean, fWYlogMean) # 0.799
 plot(fQTSlogMean, fWYlogMean, type = "n")
@@ -211,6 +260,9 @@ myCol <- colorRampPalette(c("#00DD55",
                             "#660022",
                             "#DD0033"))(10)
 heatmap(surveyMat, scale = "none", cexCol = 0.8, col = myCol)
+
+
+
 
 
 
