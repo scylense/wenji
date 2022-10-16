@@ -1,4 +1,4 @@
-# mapCol.R
+# tocID <- "mapCol.R"
 #
 # Purpose:  return a category-defined colours for a characters 
 #           
@@ -19,33 +19,68 @@
 #             
 # 
 #
-# V 2.2
+# V 2.3
 # Date:     2015-10  -  2022-10
 # Author:   Boris Steipe and Yi Chen
 #
-# ToDo:          
-#           
+# V 2.3     Add a "vivid" spectrum for slides etc.
 # V 2.2     Rename "..Freq" to "..Counts
 # V 2.1     Move code to calculate scaled WY frequencies to WenYanFrequencies.R
 # V 2.0     Refactored from retired code getFcol.R with entirely new concept
 # V 1.0     Stable code
 #
+# ToDo:          
+#           
 # ==============================================================================
+
+
+#TOC> ==========================================================================
+#TOC> 
+#TOC>   Section  Title                                                     Line
+#TOC> -------------------------------------------------------------------------
+#TOC>   1        qtsMap                                                      68
+#TOC>   1.1        qtsMap$type (character or part-of-speech)                 71
+#TOC>   1.2        qtsMap$cat (values to categories)                         75
+#TOC>   1.3        qtsMap$cut (bounds for rank-based categories)             81
+#TOC>   1.4        qtsMap$col (colours for character counts or POS)          92
+#TOC>   1.5        qtsMap$labels (... for legend)                           122
+#TOC>   1.6        qtsMap$cat: frequencies to categories                    133
+#TOC>   2        wyMap                                                      142
+#TOC>   2.1        wyMap$type (character or part-of-speech)                 147
+#TOC>   2.2        wyMap$cat (scaled counts)                                152
+#TOC>   2.3        wyMap$cut (bounds for rank-based categories)             157
+#TOC>   2.4        wyMap$col (colours for character counts or POS)          168
+#TOC>   2.5        wyMap$labels (... for legend)                            172
+#TOC>   2.6        wyMap$cat: frequencies to categories                     183
+#TOC>   3        posMap                                                     193
+#TOC>   3.1        posMap$col (colours for character counts or POS)         203
+#TOC>   4        FUNCTIONS                                                  482
+#TOC>   5        Utilities                                                  504
+#TOC>   5.1        plotMapLegend()                                          508
+#TOC>   6        Tests                                                      559
+#TOC> 
+#TOC> ==========================================================================
+
 
 if (FALSE) { # Do not execute when source()'d
   setwd(WENJIDIR)
 }
 
-# ==== PACKAGES ================================================================
+# =    1  qtsMap  ==============================================================
+qtsMap <- list()    # == the global map object qtsMap
 
-
-# ==== DEFINITIONS =============================================================
-
-# == create a global map object qtsMap
-qtsMap <- list()
+# ==   1.1  qtsMap$type (character or part-of-speech)  =========================
 qtsMap$type <- "char"
+
+
+# ==   1.2  qtsMap$cat (values to categories)  =================================
+
 qtsMap$cat <- as.numeric(ziCounts)
 names(qtsMap$cat) <- names(ziCounts) 
+
+
+# ==   1.3  qtsMap$cut (bounds for rank-based categories)  =====================
+
 qtsMap$cut <-    c(  30, # top 30 (~15% of all char)
                      100, # ~ 30%
                      515, # ~ 67%
@@ -53,13 +88,40 @@ qtsMap$cut <-    c(  30, # top 30 (~15% of all char)
                      5709, # ~ 99.9%
                      6485, # 2 or 3
                      7454) # hapax
-qtsMap$col <-    c("#c2ffd8",
-                   "#d3eff5",
-                   "#f2f6ff",
-                   "#fff5f0",
-                   "#ffdadf",
-                   "#f67884",
-                   "#dd0000")
+
+
+# ==   1.4  qtsMap$col (colours for character counts or POS)  ==================
+
+doPastel <- FALSE
+if (doPastel) {
+  qtsMap$col <-    c("#c2ffd8",                 # pastel spectrum
+                     "#d3eff5",
+                     "#f2f6ff",
+                     "#fff5f0",
+                     "#ffdadf",
+                     "#f67884",
+                     "#dd0000")
+} else {
+  # do vivid
+  N <- 7
+  qtsMap$col <- colorRampPalette(c("#37dbc8",   # vivid spectrum
+                                   "#fcfa8b",
+                                   "#fc7977",
+                                   "#fc267f"))(N)
+  barplot(rep(N, N), axes = FALSE, col=qtsMap$col)
+}
+if (FALSE) {  # use for spectrum development
+  N <- 7
+  x <- colorRampPalette(c("#37dbc8",
+                          "#fcfa8b",
+                          "#fc7977",
+                          "#fc267f"))(N)
+  barplot(rep(N, N), axes = FALSE, col=x)
+}
+
+
+# ==   1.5  qtsMap$labels (... for legend)  ====================================
+
 qtsMap$labels <- c("top 30\n(~ 15%)",
                    "top 100\n(~ 30%)",
                    "top 515\n(~ 67%)",
@@ -67,7 +129,9 @@ qtsMap$labels <- c("top 30\n(~ 15%)",
                    "(~99.9 %)",
                    "two or three",
                    "hapax")
-# convert frequencies to categories
+
+
+# ==   1.6  qtsMap$cat: frequencies to categories  =============================
 qtsMap$cat <- qtsMap$cat[order(qtsMap$cat, decreasing = TRUE)] # indexes are now ranks
 for (i in 1:length(qtsMap$cat)) {
   qtsMap$cat[i] <- sum(i > qtsMap$cut) + 1
@@ -75,10 +139,23 @@ for (i in 1:length(qtsMap$cat)) {
 
 rm(i)
 
+
+# =    2  wyMap  ===============================================================
 # == derive a global map object wyMap for WenYan character frequencies
 wyMap <- list()
+
+
+# ==   2.1  wyMap$type (character or part-of-speech)  ==========================
+
 wyMap$type <- "char"
+
+
+# ==   2.2  wyMap$cat (scaled counts)  =========================================
+
 wyMap$cat <- ziWYscaledCounts
+
+
+# ==   2.3  wyMap$cut (bounds for rank-based categories)  ======================
 
 wyMap$cut <- c(    22, # top 22 (~15% of all char)
                    73, # ~ 30%
@@ -87,7 +164,14 @@ wyMap$cut <- c(    22, # top 22 (~15% of all char)
                  5799, # ~ 99.9%
                  6355, # 2 or 3
                  7454) # hapax
+
+
+# ==   2.4  wyMap$col (colours for character counts or POS)  ===================
 wyMap$col <-  qtsMap$col
+
+
+# ==   2.5  wyMap$labels (... for legend)  =====================================
+
 wyMap$labels <- c("top 22\n(~ 15%)",
                   "top 73\n(~ 30%)",
                   "top 465\n(~ 67%)",
@@ -95,7 +179,10 @@ wyMap$labels <- c("top 22\n(~ 15%)",
                   "(~99.9 %)",
                   "two or three",
                   "hapax")
-# convert frequencies to categories
+
+
+# ==   2.6  wyMap$cat: frequencies to categories  ==============================
+
 wyMap$cat <- wyMap$cat[order(wyMap$cat, decreasing = TRUE)] # indexes are now ranks
 for (i in 1:length(wyMap$cat)) {
   wyMap$cat[i] <- sum(i > wyMap$cut) + 1
@@ -103,12 +190,18 @@ for (i in 1:length(wyMap$cat)) {
 # clean up
 rm(i)
 
+
+# =    3  posMap  ==============================================================
 # == create a global map object for part-of-speech Tags
+
 posMap <- list(type   = "pos",
                cat    = numeric(),
                col    = character(),
                labels = character())
 nam <- character()
+
+
+# ==   3.1  posMap$col (colours for character counts or POS)  ==================
 
 # define category colors
 catCols <- c(
@@ -387,9 +480,7 @@ rm(nam)
 rm(i)
 
 
-
-
-# ==== FUNCTIONS ===============================================================
+# =    4  FUNCTIONS  ===========================================================
 
 mapCol <- function(map, char) {
   
@@ -411,17 +502,12 @@ mapCol <- function(map, char) {
     return(map$col[map$cat[char]])
 }
 
+# =    5  Utilities  ===========================================================
 
-
-
-
-# ==== PROCESS =================================================================
-
-#    
-# ==== DISPLAY COLOR LEVELS =================================================
-
-if (FALSE) { # Do not execute when source()'d
+if (FALSE) { 
   
+# ==   5.1  plotMapLegend()  ===================================================
+
   plotMapLegend <- function(map) {
     
     font.add("zhFont", "华文仿宋.ttf")
@@ -471,9 +557,9 @@ if (FALSE) { # Do not execute when source()'d
 }  # END  if (FALSE)  block
 
 #    
-# ==== TESTS ===================================================================
+# =    6  Tests  ===============================================================
 
-if (FALSE) { # Do not execute when source()'d
+if (FALSE) { 
   
   mapCol(qtsMap, "山")
   mapCol(wyMap, "山")
