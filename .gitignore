@@ -4,10 +4,12 @@
 .Rhistory
 .RData
 
-./archive
-./plots
+archive
+plots
 
+.bk
 .pdf
 .jpg
 .jpeg
+.txt
 .zip
