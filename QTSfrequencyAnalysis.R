@@ -11,10 +11,11 @@
 # Notes: 
 # 
 #
-# V 0.3
-# Date:     October 2016 - January 2017
+# V 0.4
+# Date:     October 2016 - March 2017
 # Author:   Boris Steipe and Yi Chen
 #           
+# V 0.4     Pronoun analyses, add Qi Ju, Wu Lü, Qi Lü
 # V 0.3     Moved calcMeanLogRank() to wenjiUtilities.R
 # V 0.2     Add part-of-speech code and new mapCol function, consolidate.
 # V 0.1     First code experiments, until Olomouc presentation
@@ -44,6 +45,34 @@ setwd(WENJIDIR)
 # 
 # getAuthorID("韦应物")
 
+# ==== PREPARE ================================================================
+
+load("../data/poemDF.RData")
+load("../data/authorDF.RData")
+load("../data/ziRef.RData")
+
+source("QuanTangShiFrequencies.R") # prepare ziFreq and ziRanks objects
+source("WenYanFrequencies.R") # prepare ziWYFreq and ziWYRanks objects
+source("mapCol.R") # prepare mapCol maps and functions
+source("plotPoems.R") # load printing and plotting functions
+
+# ==== select JueJu (Wu Jue, Qi Jue, Wu Lü, Qi Lü) ... ===========
+sel <- grep("^([^ ]{5} ){3}[^ ]{5}$", poemDF$bodyS)  # 2306 poems
+WJ <- poemDF[sel, ]  
+
+sel <- grep("^([^ ]{7} ){3}[^ ]{7}$", poemDF$bodyS)  # 7257 poems
+QJ <- poemDF[sel, ]  
+
+sel <- grep("^([^ ]{5} ){7}[^ ]{5}$", poemDF$bodyS)  # 12,476 poems
+WL <- poemDF[sel, ]  
+
+sel <- grep("^([^ ]{7} ){7}[^ ]{7}$", poemDF$bodyS)  # 7467 poems
+QL <- poemDF[sel, ]  
+
+rm(sel)
+
+
+
 # ==== FUNCTIONS ===============================================================
 
 
@@ -61,11 +90,6 @@ plotPoem(poemDF[16479, ], qtsMap,
 plotPoem(poemDF[5247, ], qtsMap,
          fName = "test.pdf", subTitle = "(QTS ranks)")
 
-
-# ==== select JueJu (Wu Ju) ... ===========
-iJueJu <- grep("^([^ ]{5} ){3}[^ ]{5}$", poemDF$bodyS)  # 2306 poems
-JJ <- poemDF[iJueJu, ]  
-rm(iJueJu)
 
 
 # ==== gridplot the Wang River Cycle =======
@@ -101,63 +125,63 @@ SZW <- SZW[order(SZW$meanLR), ]
 plotPoemGrid(SZW, qtsMap, nCol = 4, nRow = 5,
              fName = "SZW-grid.pdf")
 
-SZW_JJ <- JJ[JJ$authorID == 130, ]
+SZW_WJ <- WJ[WJ$authorID == 130, ]
 
 
 # ==== gridplot 李白 ===============
-LiBaiJJ <- JJ[JJ$authorID == getAuthorID("李白"), ]
-LiBaiJJ <- LiBaiJJ[order(LiBaiJJ$meanLR), ]
+LiBaiWJ <- WJ[WJ$authorID == getAuthorID("李白"), ]
+LiBaiWJ <- LiBaiWJ[order(LiBaiWJ$meanLR), ]
 
-plotPoemGrid(LiBaiJJ, map = qtsMap, nCol = 6, nRow = 8,
-             fName = "LiBai_JJ-grid.pdf")
+plotPoemGrid(LiBaiWJ, map = qtsMap, nCol = 6, nRow = 8,
+             fName = "LiBai_WJ-grid.pdf")
 
 # ==== gridplot 李商隐 ==============
-LiShangYin <- JJ[JJ$authorID == getAuthorID("李商隐"), ]
+LiShangYin <- WJ[WJ$authorID == getAuthorID("李商隐"), ]
 LiShangYin <- LiShangYin[order(LiShangYin$meanLR), ]
 plotPoemGrid(LiShangYin, map = qtsMap, nCol = 6, nRow = 5,
-             fName = "LiShangYin_JJ-grid.pdf")
+             fName = "LiShangYin_WJ-grid.pdf")
 
 # ==== gridplot 杜甫 ================
-DuFuJJ <- JJ[JJ$authorID == getAuthorID("杜甫"), ]
-DuFuJJ <- DuFuJJ[order(DuFuJJ$meanLR), ]
-plotPoemGrid(DuFuJJ, map = qtsMap, nCol = 3, nRow = 3,
-             fName = "DuFu_JJ-grid.pdf")
+DuFuWJ <- WJ[WJ$authorID == getAuthorID("杜甫"), ]
+DuFuWJ <- DuFuWJ[order(DuFuWJ$meanLR), ]
+plotPoemGrid(DuFuWJ, map = qtsMap, nCol = 3, nRow = 3,
+             fName = "DuFu_WJ-grid.pdf")
 
 # ==== gridplot 韦应物 ==============
-WeiYingWuJJ <- JJ[JJ$authorID == getAuthorID("韦应物"), ]
-WeiYingWuJJ <- WeiYingWuJJ[order(WeiYingWuJJ$meanLR), ]
-plotPoemGrid(WeiYingWuJJ, map = qtsMap, nCol = 6, nRow = 10,
-             fName = "WeiYingWu_JJ-grid.pdf")
+WeiYingWuWJ <- WJ[WJ$authorID == getAuthorID("韦应物"), ]
+WeiYingWuWJ <- WeiYingWuWJ[order(WeiYingWuWJ$meanLR), ]
+plotPoemGrid(WeiYingWuWJ, map = qtsMap, nCol = 6, nRow = 10,
+             fName = "WeiYingWu_WJ-grid.pdf")
 
 # ==== gridplot all JueJu ==============
-JJ <- JJ[order(JJ$meanLR), ] # order by mean log rank
-plotPoemGrid(JJ, map = qtsMap, nCol = 43, nRow = 54,
-             fName = "All_JJ-grid.qts.pdf")
+WJ <- WJ[order(WJ$meanLR), ] # order by mean log rank
+plotPoemGrid(WJ, map = qtsMap, nCol = 43, nRow = 54,
+             fName = "All_WJ-grid.qts.pdf")
 
 # Locate the four sample poems on the full grid:
 # (1) Mèng Hào Rán 孟浩然 (430):
 #     “Chūn Xiǎo” 《春晓》 “Spring Dawn” (6874)
 #     getAuthorID("孟浩然")
 #     which(poemDF$titleS == "春晓" & poemDF$authorID == 430)
-#     which(JJ$poemID == 6874)   ... # 37
+#     which(WJ$poemID == 6874)   ... # 37
 #     ceiling(37/43); 629 %% 43  # row and column
 # (2) Wáng Wéi 王維: “Lù Zhài” 《鹿柴》 “Deer Grove” 
-#     grep("鹿柴", JJ$titleS)   # 102 (!), not # 306
+#     grep("鹿柴", WJ$titleS)   # 102 (!), not # 306
 #     ceiling(103/43); 103 %% 43  # 3/17
 # (3) Wéi Yīng Wù 韋應物 (432):
 #     “Chú Zhōu Xī Jiàn” 《滁州西澗》 “Western Valley of Chú Zhōu”
 #     grep("滁州西涧", poemDF$titleS)
-#     this is not in JJ - but a JJ of the same mean LR is #629
+#     this is not in WJ - but a WJ of the same mean LR is #629
 #     ceiling(629/ 43); 629 %% 43  # 15 / 27
 # (4) Liǔ Zōng Yuán 柳宗元: “Jiāng Xuě” 《江雪》 “River Snow”
-#     which(JJ$titleS == "江雪")   #1433
+#     which(WJ$titleS == "江雪")   #1433
 #     ceiling(1433/ 43); 1433 %% 43   # 34 / 14
 
 
-# === list highest/lowest rank JJ
-JJ <- JJ[order(JJ$meanLR), ] # order by mean log rank
-printPoems(JJ[1:10,])
-printPoems(JJ[-(1:(nrow(JJ) - 10)), ])
+# === list highest/lowest rank WJ
+WJ <- WJ[order(WJ$meanLR), ] # order by mean log rank
+printPoems(WJ[1:10,])
+printPoems(WJ[-(1:(nrow(WJ) - 10)), ])
 
 
 # === Individual analyses =======
@@ -250,14 +274,14 @@ lines(lowess(x, WWpoems$meanLR),
 # ==== calculate mean ranks separately for JueJu lines
 
 iJueJu <- grep("^([^ ]{5} ){3}[^ ]{5}$", poemDF$bodyS)  # 2306 poems
-JJ <- poemDF[iJueJu, ]
-JJ <- JJ[order(JJ$meanLR), ] # order by mean Rank
+WJ <- poemDF[iJueJu, ]
+WJ <- WJ[order(WJ$meanLR), ] # order by mean Rank
 
-lineLRanks <- matrix(numeric(4 * nrow(JJ)), ncol = 4)
+lineLRanks <- matrix(numeric(4 * nrow(WJ)), ncol = 4)
 colnames(lineLRanks) <- c("line.1", "line.2", "line.3", "line.4")
 
-for (i in 1:nrow(JJ)) {
-  lines <- unlist(strsplit(JJ$bodyS[i], " "))
+for (i in 1:nrow(WJ)) {
+  lines <- unlist(strsplit(WJ$bodyS[i], " "))
   for (j in 1:4){
     lineLRanks[i, j] <- calcMeanLogRank(lines[j])
   }
@@ -270,13 +294,13 @@ boxplot(lineLRanks,
 
 # same for Wang Wei
 # 
-WW_JJ <- JJ[JJ$authorID == 389, ]
+WW_WJ <- WJ[WJ$authorID == 389, ]
 
-WW_lr <- matrix(numeric(4 * nrow(WW_JJ)), ncol = 4)
+WW_lr <- matrix(numeric(4 * nrow(WW_WJ)), ncol = 4)
 colnames(WW_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
-for (i in 1:nrow(WW_JJ)) {
-  lines <- unlist(strsplit(WW_JJ$bodyS[i], " "))
+for (i in 1:nrow(WW_WJ)) {
+  lines <- unlist(strsplit(WW_WJ$bodyS[i], " "))
   for (j in 1:4){
     WW_lr[i, j] <- calcMeanLogRank(lines[j])
   }
@@ -305,13 +329,13 @@ boxplot(WRC_lr,
         main = "mean log(ranks) of character frequency for JueJu lines (Wang River Cycle only)")
 
 #  === Li Shangyin
-LSY_JJ <- JJ[JJ$authorID == 1069, ]
+LSY_WJ <- WJ[WJ$authorID == 1069, ]
 
-LSY_lr <- matrix(numeric(4 * nrow(LSY_JJ)), ncol = 4)
+LSY_lr <- matrix(numeric(4 * nrow(LSY_WJ)), ncol = 4)
 colnames(LSY_lr) <- c("line.1", "line.2", "line.3", "line.4")
 
-for (i in 1:nrow(LSY_JJ)) {
-  lines <- unlist(strsplit(LSY_JJ$bodyS[i], " "))
+for (i in 1:nrow(LSY_WJ)) {
+  lines <- unlist(strsplit(LSY_WJ$bodyS[i], " "))
   for (j in 1:4){
     LSY_lr[i, j] <- calcMeanLogRank(lines[j])
   }
@@ -324,8 +348,8 @@ boxplot(LSY_lr,
 
 # combine 
 
-allLr <- matrix(nrow = nrow(JJ), ncol=16)
-allLr[1:nrow(JJ), 1:4] <- lineLRanks
+allLr <- matrix(nrow = nrow(WJ), ncol=16)
+allLr[1:nrow(WJ), 1:4] <- lineLRanks
 allLr[1:nrow(LSY_lr), 5:8] <- LSY_lr
 allLr[1:nrow(WW_lr), 9:12] <- WW_lr
 allLr[1:nrow(WRC_lr), 13:16] <- WRC_lr
@@ -347,6 +371,107 @@ axis(1, at=1:16, labels = rep(1:4, 4))
 
 # what is the outlier low value in line 1?
 which(WRC_lr[,1] == min(WRC_lr[,1])) #   Ah. 空山不见人。。。
+
+# ==== Frequencies of personal pronouns
+
+pp1 <- c("余", "吾", "予", "我", "自")# first person
+names(pp1) <- rep("1", length(pp1))
+pp2 <- c("子", "若", "君", "你", "尔", "您")# second person
+names(pp2) <- rep("2", length(pp2))
+pp3 <- c("彼", "之", "其", "他", "她")# third person
+names(pp3) <- rep("3", length(pp3))
+
+
+printCFR <- function(s, zi, header) {
+  # print counts, frequencies and ranks from text s for characters in zi
+  myCounts <- compileZiCounts(s)
+  myRanks  <- compileZiRanks(myCounts)
+  myFreq   <- myCounts / sum(myCounts)  
+  cat(sprintf("\n%s\n", header))
+  sel <- which(names(myCounts) %in% zi)
+  cat(" pp:Zi   rank   counts  (freq.)\n")
+  for (i in 1:length(sel)) {
+    thisZi <- names(myCounts)[sel[i]]
+    cat(sprintf("  %s:%s  %5d  %7d  (%f)\n",
+                names(zi)[zi == thisZi],
+                thisZi,
+                myRanks[thisZi], 
+                myCounts[thisZi], 
+                myFreq[thisZi]))
+  }
+  cat("\n\n")
+}
+
+printCFR(poemDF$bodyS, c(pp1, pp2, pp3), "Personal pronouns in QTS")
+# === Wen Yan ====
+zi <- c(pp1, pp2, pp3)
+myCounts <- ziWYFreq
+myRanks  <- wyRanks
+myFreq   <- myCounts / sum(myCounts)  
+sel <- which(names(myCounts) %in% zi)
+cat("Personal pronouns in WenYan\n")
+cat(" pp:Zi   rank   counts  (freq.)\n")
+for (i in seq_along(sel)) {
+  thisZi <- names(myCounts)[sel[i]]
+  cat(sprintf("  %s:%s  %5d  %7d  (%f)\n",
+              names(zi)[zi == thisZi],
+              thisZi,
+              round(myRanks[thisZi]), 
+              myCounts[thisZi], 
+              myFreq[thisZi]))
+}
+cat("\n\n")
+# =================
+
+printAuthorZiUsage <- function(au, zi) {
+  aID <- authorDF$authorID[authorDF$nameS == au]
+  printCFR(poemDF$bodyS[poemDF$authorID == aID],
+           zi, 
+           sprintf("Usage by %s (in complete QTS corpus)", authorDF$nameS[aID]))
+  printCFR(WJ$bodyS[poemDF$authorID == aID],
+           zi, 
+           sprintf("Usage by %s (Wu Jue only)", authorDF$nameS[aID]))
+  printCFR(QJ$bodyS[poemDF$authorID == aID],
+           zi, 
+           sprintf("Usage by %s (Qi Jue only)", authorDF$nameS[aID]))
+  printCFR(WL$bodyS[poemDF$authorID == aID],
+           zi, 
+           sprintf("Usage by %s (Wu Lü only)", authorDF$nameS[aID]))
+  printCFR(QL$bodyS[poemDF$authorID == aID],
+           zi, 
+           sprintf("Usage by %s (Qi Lü only)", authorDF$nameS[aID]))
+} 
+
+# Meng Haoran  孟浩然 (430)
+printAuthorZiUsage("孟浩然", c(pp1, pp2, pp3))
+
+# Wang Wei     王维   (389)
+printAuthorZiUsage("王维", c(pp1, pp2, pp3))
+
+printCFR(WangRiverCycle$bodyS[poemDF$authorID == 389],
+         c(pp1, pp2, pp3), 
+         sprintf("Usage by %s (Wang River Cycle only)", "王维"))
+
+
+
+# Wei Yingwu   韦应物 (432)
+printAuthorZiUsage("韦应物", c(pp1, pp2, pp3))
+
+# Liu Zongyuan 柳宗元 (812)
+printAuthorZiUsage("柳宗元", c(pp1, pp2, pp3))
+
+
+# Counts
+sum(poemDF$authorID == 430) # 268
+sum(poemDF$authorID == 389) # 351
+sum(poemDF$authorID == 432) # 551
+sum(poemDF$authorID == 812) # 551
+
+sum(WJ$authorID == 430) # 19
+sum(WJ$authorID == 389) # 43
+sum(WJ$authorID == 432) # 59
+sum(WJ$authorID == 812) # 9
+
 
 
 #    
