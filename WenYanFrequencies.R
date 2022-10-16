@@ -4,24 +4,25 @@
 #           
 # Precondition: The frequency list exists in
 #               "../data/JunDa/JunDa_FrequencyList.tsv"
-#                 (global) ziFreq exists - the frequencies from QTS
+#                 (global) ziCounts exists - the character counts from QTS
 #                 (global) ziRanks exists - the ranks from QTS
 #                
-# Postcondition:  (global) ziWYFreq exists
-#                 (global) ziWYscaledFreq exists
+# Postcondition:  (global) ziWYCounts exists
+#                 (global) ziWYscaledCounts exists
 #                 (global) ziWYRanks exists
 #                
 #
-# Notes: ziWYscaledFreq has same order of characters as ziFreq for direct
+# Notes: ziWYscaledCounts has same order of characters as ziCounts for direct
 #          comparison of frequency differences.
 # 
 #
-# V 1.1
-# Date:     October 2016
+# V 1.2
+# Date:     2016-10  -  2022-10
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo      Remove leftover code from analysis section
 #           
+# V 1.2     change ziWYFreq to ziWYCounts
 # V 1.1     Add code to scale frequencies to QTS global counts; keep global
 #             object ziWYscaledFreq. 
 # V 1.0     Stable code
@@ -54,19 +55,19 @@ tmp <- read.csv(WYfile,
                 stringsAsFactors = FALSE)
 rm(WYfile)
 
-ziWYFreq <- tmp$V3
-names(ziWYFreq) <- tmp$V2
-ziWYFreq <- as.table(ziWYFreq)
+ziWYCounts <- tmp$V3
+names(ziWYCounts) <- tmp$V2
+ziWYCounts <- as.table(ziWYCounts)
 rm(tmp)
 
 # == make rank vector
 # create named vector of ranks
-wyRanks <- 1:length(ziWYFreq)
-names(wyRanks) <- names(ziWYFreq)
+wyRanks <- 1:length(ziWYCounts)
+names(wyRanks) <- names(ziWYCounts)
 
 # replace ranks for characters with the same frequency with the 
 # mean rank of those characters
-wyRankRLE <- rle(as.numeric(ziWYFreq))
+wyRankRLE <- rle(as.numeric(ziWYCounts))
 start <- 1
 for (l in wyRankRLE$lengths) {
   end <- start + l -1
@@ -88,28 +89,29 @@ ziWYRanks <- ziWYRanks * ( length(ziWYRanks) / length(wyRanks) )
 ziWYRanks[naWY] <- ziRanks[naWY] 
 rm(naWY)
 
-# == Done: ziWYFreq and ziWYRanks are ready
+# == Done: ziWYCounts and ziWYRanks are ready
 
-ziWYscaledFreq <- as.numeric(ziWYFreq[names(ziFreq)])
-names(ziWYscaledFreq) <- names(ziFreq)
+ziWYscaledCounts <- as.numeric(ziWYCounts[names(ziCounts)])
+names(ziWYscaledCounts) <- names(ziCounts)
 
 # scale observations to qts
-x <- which(is.na(ziWYscaledFreq))
+x <- which(is.na(ziWYscaledCounts))
 # scale is the ratio of characters present in both tables
-sc <- sum(ziFreq[- x]) / sum(ziWYscaledFreq, na.rm = TRUE)
+sc <- sum(ziCounts[- x]) / sum(ziWYscaledCounts, na.rm = TRUE)
 # adjust NA values by this scale
-ziWYscaledFreq[x] <- ziFreq[x] / sc
+ziWYscaledCounts[x] <- ziCounts[x] / sc
 # recalculate scale
-sc <- sum(ziFreq) / sum(ziWYscaledFreq)
+sc <- sum(ziCounts) / sum(ziWYscaledCounts)
 # rescale wyMap$cat
-ziWYscaledFreq <- round(ziWYscaledFreq * sc)
+ziWYscaledCounts <- round(ziWYscaledCounts * sc)
 # change all 0's to 1
-ziWYscaledFreq[ziWYscaledFreq == 0] <- 1
+ziWYscaledCounts[ziWYscaledCounts == 0] <- 1
 # rescale one last time 
-ziWYscaledFreq <- round(ziWYscaledFreq * (sum(ziFreq) / sum(ziWYscaledFreq)))
+ziWYscaledCounts <- round(ziWYscaledCounts *
+                          (sum(ziCounts) / sum(ziWYscaledCounts)))
 # check
-# min(ziWYscaledFreq)  # must be 1
-# sum(ziFreq) / sum(ziWYscaledFreq)  #  0.999295
+# min(ziWYscaledCounts)  # must be 1
+# sum(ziCounts) / sum(ziWYscaledCounts)  #  0.9999295
 
 # clean up
 rm(x)
