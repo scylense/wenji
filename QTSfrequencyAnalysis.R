@@ -20,7 +20,10 @@
 # V 0.2     Add part-of-speech code and new mapCol function, consolidate.
 # V 0.1     First code experiments, until Olomouc presentation
 #
-# ToDo:     Add contemporary word frequencies      
+# ToDo:     Add contemporary word frequencies     
+#           Definition length complexity as simplicity measure
+#           Statistical analysis of author or cycle simplicity measures
+#             against random chocices from the corpus 
 #
 # ==============================================================================
 
@@ -51,8 +54,8 @@ load("../data/poemDF.RData")
 load("../data/authorDF.RData")
 load("../data/ziRef.RData")
 
-source("QuanTangShiFrequencies.R") # prepare ziFreq and ziRanks objects
-source("WenYanFrequencies.R") # prepare ziWYFreq and ziWYRanks objects
+source("QuanTangShiFrequencies.R") # prepare ziCounts and ziRanks objects
+source("WenYanFrequencies.R") # prepare ziWYCounts and ziWYRanks objects
 source("mapCol.R") # prepare mapCol maps and functions
 source("plotPoems.R") # load printing and plotting functions
 
@@ -156,7 +159,16 @@ plotPoemGrid(WeiYingWuWJ, map = qtsMap, nCol = 6, nRow = 10,
 # ==== gridplot all JueJu ==============
 WJ <- WJ[order(WJ$meanLR), ] # order by mean log rank
 plotPoemGrid(WJ, map = qtsMap, nCol = 43, nRow = 54,
-             fName = "All_WJ-grid.qts.pdf")
+             fName = "test.pdf")
+#             fName = "All_WJ-grid.qts.pdf")
+
+# plot highest and lowest ranked poem
+plotPoem(WJ[1, ],
+         map = qtsMap, subTitle = "",
+         fNameSuffix = "")
+plotPoem(WJ[nrow(WJ), ],
+         map = qtsMap, subTitle = "",
+         fNameSuffix = "")
 
 # Locate the four sample poems on the full grid:
 # (1) Mèng Hào Rán 孟浩然 (430):
@@ -166,8 +178,8 @@ plotPoemGrid(WJ, map = qtsMap, nCol = 43, nRow = 54,
 #     which(WJ$poemID == 6874)   ... # 37
 #     ceiling(37/43); 629 %% 43  # row and column
 # (2) Wáng Wéi 王維: “Lù Zhài” 《鹿柴》 “Deer Grove” 
-#     grep("鹿柴", WJ$titleS)   # 102 (!), not # 306
-#     ceiling(103/43); 103 %% 43  # 3/17
+#     grep("鹿柴", WJ$titleS)   # 101 (!), not # 307
+#     ceiling(101/43); 101 %% 43  # 3/17
 # (3) Wéi Yīng Wù 韋應物 (432):
 #     “Chú Zhōu Xī Jiàn” 《滁州西澗》 “Western Valley of Chú Zhōu”
 #     grep("滁州西涧", poemDF$titleS)
@@ -177,12 +189,43 @@ plotPoemGrid(WJ, map = qtsMap, nCol = 43, nRow = 54,
 #     which(WJ$titleS == "江雪")   #1433
 #     ceiling(1433/ 43); 1433 %% 43   # 34 / 14
 
+# locate all Wang River cycle poems on the full grid.
+head(WangRiverCycle)
 
-# === list highest/lowest rank WJ
-WJ <- WJ[order(WJ$meanLR), ] # order by mean log rank
-printPoems(WJ[1:10,])
-printPoems(WJ[-(1:(nrow(WJ) - 10)), ])
+s <- character()
+for (i in 1:nrow(WangRiverCycle))  {  # for each poem in the cycle
+  pID <- WangRiverCycle$poemID[i]     # fetch poem ID
+  iWJ <- which(WJ$poemID == pID)      # locate the poem in WJ
+  
+  # Print name, row, and column.
+  s[i] <- sprintf("No. %d - poem %d (%s - %s): Row: %d  Column: %d\n",
+      iWJ,
+      pID,
+      authorDF$nameS[WangRiverCycle$authorID[i]],
+      WangRiverCycle$titleS[i],
+      ceiling(iWJ / 43),
+      iWJ %% 43)
+  names(s)[i] <- iWJ
+}
 
+s <- s[order(as.numeric(names(s)))]
+cat(s)
+WangRiverCycle[18,]
+
+# print out all Wang River Cycle poems sorted by character complexity
+ord <- order(WangRiverCycle$meanLR)
+s <- character()
+for (i in 1:nrow(WangRiverCycle))  {  # for each poem in the cycle
+  # Print ID (LR), title, and body.
+  idx <- ord[i]
+  s[i] <- sprintf("\nPoem %d (%3.2f):\t%s\t-  %s",
+                  WangRiverCycle$poemID[idx],
+                  WangRiverCycle$meanLR[idx],
+                  WangRiverCycle$titleS[idx],
+                  WangRiverCycle$bodyS[idx])
+}
+cat(s)
+nchar(WangRiverCycle$titleS)
 
 # === Individual analyses =======
 # === "韦应物" # 7837
