@@ -4,7 +4,9 @@
 .Rhistory
 .RData
 
+./archive
 ./plots
+
 .pdf
 .jpg
 .jpeg
