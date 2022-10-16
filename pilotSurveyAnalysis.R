@@ -142,12 +142,12 @@ text(rMean, fQTSMean, labels = names(rMean), cex = 0.7)
 text(9, 0, label = "coefficient of correlation: 0.546",
      col = "maroon", cex = 0.9)
 
-# plot pp and pc limits
+# add confidence and prediction boundaries
 o <- order(rMean)
 r2 <- rMean[o]
 f2 <- fQTSMean[o]
-pc<-predict(lm(f2 ~ r2), int="c")
-pp<-predict(lm(f2 ~ r2), int="p")
+pc<-predict(lm(f2 ~ r2), interval = "confidence", level = 0.95)
+pp<-predict(lm(f2 ~ r2), interval = "prediction", level = 0.95)
 matlines(r2, pc, lty=c(1,2,2), col="maroon1", lwd = 0.5)
 matlines(r2, pp, lty=c(1,3,3), col="maroon2", lwd = 0.5)
 
@@ -168,8 +168,8 @@ text(9, 0, label = "coefficient of correlation: 0.339",
 o <- order(rMean)
 r2 <- rMean[o]
 f2 <- fWYMean[o]
-pc<-predict(lm(f2 ~ r2), int="c")
-pp<-predict(lm(f2 ~ r2), int="p")
+pc<-predict(lm(f2 ~ r2), interval = "confidence", level = 0.95)
+pp<-predict(lm(f2 ~ r2), interval = "prediction", level = 0.95)
 matlines(r2, pc, lty=c(1,2,2), col="skyblue1", lwd = 0.5)
 matlines(r2, pp, lty=c(1,3,3), col="skyblue2", lwd = 0.5)
 
@@ -225,9 +225,24 @@ for (i in 1:length(fQTSMean)) {
 
 
 # ==== non-parametric
+
+myFit <- lm(rank(fQTSMean) ~ rank(rMean))
 cor(rank(rMean), rank(fQTSMean))     # 0.639
-plot(rank(rMean), rank(fQTSMean))
-abline(lm(rank(fQTSMean) ~ rank(rMean)), col = "maroon")
+plot(rank(rMean), rank(fQTSMean), type = "n", ylim = c(0, 20))
+abline(myFit, col = "maroon")
+
+text(rank(rMean), rank(fQTSMean), pos = 2, labels = names(rMean), cex = 0.7)
+text(15, 0, label = "coefficient of correlation: 0.639",
+     col = "maroon", cex = 0.9)
+
+o <- order(rank(rMean))
+r2 <- rank(rMean)[o]
+f2 <- rank(fQTSMean)[o]
+pc<-predict(lm(f2 ~ r2), interval = "confidence", level = 0.95)
+pp<-predict(lm(f2 ~ r2), interval = "prediction", level = 0.95)
+matlines(r2, pc, lty=c(1,2,2), col="maroon1", lwd = 0.5)
+matlines(r2, pp, lty=c(1,3,3), col="maroon2", lwd = 0.5)
+
 
 cor(rank(rMean), rank(fWYMean))      # 0.308
 plot(rank(rMean), rank(fWYMean))
@@ -262,9 +277,11 @@ myCol <- colorRampPalette(c("#00DD55",
 heatmap(surveyMat, scale = "none", cexCol = 0.8, col = myCol)
 
 
+# ==== individual poems' character ranks ====
 
-
-
+i <- 8611
+s <- unlist(strsplit(gsub(" ", "", poemDF$bodyS[i]), ""))
+ziRanks[s]
 
 #    
 # ==== TESTS ===================================================================

@@ -28,10 +28,10 @@ if (FALSE) { # Do not execute when source()'d
 # ==== PACKAGES ================================================================
 
 # showtext to plot Chinese characters
-if (!require(showtext)) {
+if (! requireNamespace("showtext", quietly = TRUE)) {
   install.packages("showtext")
-  library(showtext)
 }
+library(showtext)
 
 
 # ==== DEFINITIONS =============================================================
