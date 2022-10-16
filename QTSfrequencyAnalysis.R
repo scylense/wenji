@@ -23,7 +23,7 @@
 # ToDo:     Add contemporary word frequencies     
 #           Definition length complexity as simplicity measure
 #           Statistical analysis of author or cycle simplicity measures
-#             against random chocices from the corpus 
+#             against random choices from the corpus 
 #
 # ==============================================================================
 
