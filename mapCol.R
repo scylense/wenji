@@ -3,7 +3,7 @@
 # Purpose:  return a category-defined colours for a characters 
 #           
 # Precondition: QTS and WenYan frequency tables must exist in the
-#                 global namespace: ziFreq and zyWYFreq 
+#                 global namespace: ziCounts and ziWYscaledCounts 
 #                
 # Postcondition:  (global) qtsMap, wyMap and posMap exist
 #                
@@ -19,12 +19,13 @@
 #             
 # 
 #
-# V 2.1
-# Date:     October - November 2016
+# V 2.2
+# Date:     2015-10  -  2022-10
 # Author:   Boris Steipe and Yi Chen
 #
 # ToDo:          
 #           
+# V 2.2     Rename "..Freq" to "..Counts
 # V 2.1     Move code to calculate scaled WY frequencies to WenYanFrequencies.R
 # V 2.0     Refactored from retired code getFcol.R with entirely new concept
 # V 1.0     Stable code
@@ -43,8 +44,8 @@ if (FALSE) { # Do not execute when source()'d
 # == create a global map object qtsMap
 qtsMap <- list()
 qtsMap$type <- "char"
-qtsMap$cat <- as.numeric(ziFreq)
-names(qtsMap$cat) <- names(ziFreq) 
+qtsMap$cat <- as.numeric(ziCounts)
+names(qtsMap$cat) <- names(ziCounts) 
 qtsMap$cut <-    c(  30, # top 30 (~15% of all char)
                      100, # ~ 30%
                      515, # ~ 67%
@@ -77,7 +78,7 @@ rm(i)
 # == derive a global map object wyMap for WenYan character frequencies
 wyMap <- list()
 wyMap$type <- "char"
-wyMap$cat <- ziWYscaledFreq
+wyMap$cat <- ziWYscaledCounts
 
 wyMap$cut <- c(    22, # top 22 (~15% of all char)
                    73, # ~ 30%
